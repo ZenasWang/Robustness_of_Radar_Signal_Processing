@@ -14,14 +14,9 @@ for i = 1 : N_pn
       * exp(1j * 2 * pi * f0(i) / c0 * (P_Tx(i) + P_Rx(i)) * u);
 end
 
-% mu = zeros(ns, k, N_pn);
-% sigma = sigma0 * eye();
-sigma = 100000*eye(1000);
-mu = zeros(1000, 1000);
-rng('default')  % For reproducibility
-R = mvnrnd(mu,sigma);
-scatter3(R(:,1),R(:,2),R(:,3))
+n = sigma * randn(N_sample, N_chirp, N_pn);
+X = X + n;
 
-% subplot(2,1,1); stem(X(:, 1, 2));
-% fftx = fft(X(:, 1, 2));
-% subplot(2,1,2); stem(fftx);
+subplot(2,1,1); stem(X(:, 1, 2));
+fftx = fft(X(:, 1, 2));
+subplot(2,1,2); stem(fftx);

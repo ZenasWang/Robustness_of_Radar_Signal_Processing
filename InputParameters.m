@@ -22,5 +22,5 @@ c0 = 3e8;
 %define the scenatio modeule parameters
 r0 = 100;
 vr = 0;
-sigma0 = 6;
+sigma = 6;
 u = pi / 180 * 15;

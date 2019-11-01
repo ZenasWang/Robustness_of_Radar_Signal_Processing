@@ -13,9 +13,9 @@ function signal = signalGenerator_SO(radarParameter, objectParameter) % input
           * exp(1j * 2 * pi * (fD(i) * tpn(i)))... % scalar
           * exp(1j * 2 * pi * fR * ns' * radarParameter.T_sample)... % N_sample x 1
           * exp(1j * 2 * pi * fD(i) * k * radarParameter.T_chirp)... % 1 x N_T_chirp
-          * exp(1j * 2 * pi * radarParameter.f0(i) / radarParameter.c0 * radarParameter.P(i, :) * (objectParameter.u)');
-    end
-    
+          * exp(1j * 2 * pi * radarParameter.f0(i) / radarParameter.c0... 
+                           * radarParameter.P(i, :) * objectParameter.u');
+    end   
     n = objectParameter.sigma * randn(radarParameter.N_sample, ...
                                       radarParameter.N_chirp, radarParameter.N_pn);
     signal = X + n;

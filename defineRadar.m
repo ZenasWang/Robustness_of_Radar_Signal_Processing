@@ -1,21 +1,33 @@
-function radarParameter = defineRadar()
+function radarParameter = defineRadar(carrier_frequence, bandwidth, total_time,...
+                                        N_chirps, N_samples, Ante_Position)
 %define the configration module parameters
-radarParameter.N_pn = 8;       % pulse number
-radarParameter.N_chirp = 1000;  % chirp number per pulse
-radarParameter.N_sample = 20;  % sample number per chirp
 
-radarParameter.T_full = 8e-3;                     % full time
-radarParameter.T_pn = radarParameter.T_full /radarParameter. N_pn;            % duration per pulse
-radarParameter.T_chirp = radarParameter.T_pn / radarParameter.N_chirp;        % chirp duration
-radarParameter.T_sample = radarParameter.T_chirp / radarParameter.N_sample;   % sample duration
+radarParameter.P = Ante_Position;   % Ante Positions
+               
+radarParameter.N_pn = length(radarParameter.P);       % antenna position number
 
-radarParameter.B = 1e9;                        %bandwidth
-radarParameter.ramp = radarParameter.B / radarParameter.T_chirp;             % chirp rate
-radarParameter.f0(1: N_pn) = 70e9;              % carrier frequency
+radarParameter.N_chirp = N_chirps;  % chirp number per pulse
+
+radarParameter.N_sample = N_samples;  % sample number per chirp
+
+radarParameter.T_full = total_time;    % full time
+
+radarParameter.T_pn = radarParameter.T_full /radarParameter. N_pn;  % duration per pulse
+
+radarParameter.T_chirp = radarParameter.T_pn / radarParameter.N_chirp; % chirp duration
+
+radarParameter.T_sample = radarParameter.T_chirp / radarParameter.N_sample; % sample duration
+
+radarParameter.B = bandwidth; %bandwidth
+radarParameter.ramp = radarParameter.B / radarParameter.T_chirp; % chirp rate
+
+if length(carrier_frequence) == 1
+    radarParameter.f0(1: radarParameter.N_pn) = carrier_frequence;% carrier frequency
+else
+    radarParameter.f0 = carrier_frequence;
+end
 
 % antenna_configuration
-radarParameter.P_Tx(1: N_pn) = 0;
-radarParameter.P_Rx(1: N_pn) = 10;
 radarParameter.A = 10; 
 radarParameter.c0 = 299792458;
 

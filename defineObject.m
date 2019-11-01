@@ -1,8 +1,7 @@
-function objectParameter = defineObject()
+function objectParameter = defineObject(range, speed, DOA, sigma)
     %define the scenatio modeule parameters
-    objectParameter.r0 = 100;
-    objectParameter.vr = 0;
-    objectParameter.sigma = 6;
-    objectParameter.alpha = pi / 180 * 15;
-    objectParameter.u = sin(alpha);
+    objectParameter.r0 = range;
+    objectParameter.vr = speed;
+    objectParameter.sigma = sigma;
+    objectParameter.u = DOA;
 end

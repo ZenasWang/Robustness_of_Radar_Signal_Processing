@@ -1,28 +1,43 @@
-function radarParameter = defineRadar(carrier_frequence, bandwidth, total_time,...
-                                        N_chirps, N_samples, Ante_Position)
+function radarParameter = defineRadar(carrier_frequence, bandwidth, sample_frequence,...
+                                        N_chirps, N_samples, Tx_position, Rx_position)
 %define the configration module parameters
 
-radarParameter.P = Ante_Position;   % Ante Positions
-               
-radarParameter.N_pn = length(radarParameter.P);       % antenna position number
+radarParameter.P = [];
+% Tx numbers
+radarParameter.N_Tx = length(Tx_position);
+% Rx numbers
+radarParameter.N_Rx = length(Rx_position);
 
-radarParameter.N_chirp = N_chirps;  % chirp number per pulse
+% build antenna positions
+for i = 1: radarParameter.N_Tx
+    radarParameter.P = [radarParameter.P;... 
+                    repmat(Tx_position(i, :), radarParameter.N_Rx, 1) + Rx_position];   % Ante Positions
+end  
 
-radarParameter.N_sample = N_samples;  % sample number per chirp
+% antenna position number
+radarParameter.N_pn = length(radarParameter.P);  % N_TX * N_Rx     
+% chirp number per pulse
+radarParameter.N_chirp = N_chirps;  
+% sample number per chirp
+radarParameter.N_sample = N_samples;
+% sample duration
+radarParameter.T_sample = 1 / sample_frequence;
+% chirp duration
+radarParameter.T_chirp = radarParameter.T_sample * radarParameter.N_sample;
+% duration per antenna
+radarParameter.T_pn = radarParameter.T_chirp * radarParameter.N_chirp;  
+% full time
+radarParameter.T_full = radarParameter.T_pn * radarParameter.N_Tx;    
 
-radarParameter.T_full = total_time;    % full time
+%bandwidth
+radarParameter.B = bandwidth;
 
-radarParameter.T_pn = radarParameter.T_full /radarParameter. N_pn;  % duration per pulse
+% chirp rate
+radarParameter.ramp = radarParameter.B / radarParameter.T_chirp; 
 
-radarParameter.T_chirp = radarParameter.T_pn / radarParameter.N_chirp; % chirp duration
-
-radarParameter.T_sample = radarParameter.T_chirp / radarParameter.N_sample; % sample duration
-
-radarParameter.B = bandwidth; %bandwidth
-radarParameter.ramp = radarParameter.B / radarParameter.T_chirp; % chirp rate
-
+% carrier frequence, only N_Tx
 if length(carrier_frequence) == 1
-    radarParameter.f0(1: radarParameter.N_pn) = carrier_frequence;% carrier frequency
+    radarParameter.f0(1: radarParameter.N_Tx) = carrier_frequence;% carrier frequency
 else
     radarParameter.f0 = carrier_frequence;
 end
@@ -30,6 +45,5 @@ end
 % antenna_configuration
 radarParameter.A = 10; 
 radarParameter.c0 = 299792458;
-
 end
 

@@ -1,7 +1,3 @@
-function s = signalFFT(radarParameters)
-fft_range = sqrt(size(radarData,1)) * fft(radarData,[],1);
-rangeSpec = sum(abs(fft_range),2);
-
-% sum of all range spectra of the antennas
-rangeSpec_sum = sum(rangeSpec,3);
+function fftSignal = signalFFT(radarSignal,  N_sample, N_chirp)
+fftSignal = abs(fftshift(fft2(radarSignal, 3 * N_sample, 3 * N_chirp))) .^ 2;
 end

@@ -1,3 +1,9 @@
-function fftSignal = signalFFT(radarSignal,  N_sample, N_chirp)
-fftSignal = abs(fftshift(fft2(radarSignal, 3 * N_sample, 3 * N_chirp))) .^ 2;
+function fftSignal = signalFFT(rawData)
+% input radarSignal is a 3-D signal
+% rawData = radarSignal;
+% window function
+windowData = repmat(chebwin(size(rawData, 1), 60) * chebwin(size(rawData, 2), 60)' , 1, 1, size(rawData, 3));
+radarData = rawData .* windowData;
+% fft for 3-D signal
+fftSignal = abs(fftshift(fft2(radarData, size(radarData, 1), size(radarData, 2)), 2));
 end

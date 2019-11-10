@@ -1,8 +1,8 @@
-function objectParameter = defineObject(range, speed, DOA, Amplitude, sigma)
+function objectParameter = defineObject(range, speed, DOA, Amplitude, SNR)
     %define the scenatio modeule parameters
     objectParameter.r0 = range;
     objectParameter.vr = speed;
-    objectParameter.sigma = sigma;
+    objectParameter.SNR = SNR;
     objectParameter.u = DOA;
     objectParameter.A = Amplitude; 
 end

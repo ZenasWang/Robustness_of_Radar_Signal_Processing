@@ -54,5 +54,4 @@ for i=1:numel(maxInd)
         a_hat(i)=max_Amp;
     end
 end
-
 end

@@ -28,10 +28,8 @@ radarParameter.T_chirp = radarParameter.T_sample * radarParameter.N_sample;
 radarParameter.T_pn = radarParameter.T_chirp * radarParameter.N_chirp;  
 % full time
 radarParameter.T_full = radarParameter.T_pn * radarParameter.N_Tx;    
-
 %bandwidth
 radarParameter.B = bandwidth;
-
 % chirp rate
 radarParameter.ramp = radarParameter.B / radarParameter.T_chirp; 
 

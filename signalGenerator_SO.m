@@ -22,5 +22,6 @@ function signal = signalGenerator_SO(radarParameter, objectParameter) % input
                            * radarParameter.P(i, :) * objectParameter.u');
     end   
     %n = normrnd(0, objectParameter.sigma, radarParameter.N_sample, radarParameter.N_chirp, radarParameter.N_pn);
+    % add complex noise
     signal = awgn(X, objectParameter.SNR, 'measured');
 end

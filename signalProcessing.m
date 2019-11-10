@@ -16,8 +16,7 @@ probabilityFalseAlarm = 1e-5;
 windowData = repmat(chebwin(size(rawData, 1), 60) * chebwin(size(rawData, 2), 60)' , 1, 1, size(rawData, 3));
 radarData = rawData .* windowData;
 
-% 1D-fft range
-% to detect targets in range direction
+% 1D-fft range to detect targets in range direction
 
 fft_range = sqrt(size(radarData, 1)) * fft(radarData, size(radarData, 1), 1);
 rangeSpec = sum(abs(fft_range), 2);

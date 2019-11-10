@@ -1,6 +1,6 @@
 function fftSignal = signalFFT(rawData)
 % input radarSignal is a 3-D signal
-% rawData = radarSignal;
+
 % window function
 windowData = repmat(chebwin(size(rawData, 1), 60) * chebwin(size(rawData, 2), 60)' , 1, 1, size(rawData, 3));
 radarData = rawData .* windowData;

@@ -9,7 +9,7 @@ function [ ind_hat, a_hat] = peakInterp( maxInd, data, isVel )
 
 %def
 sizeNeighEvalInterv = 3;  %eval 4 points (>3), enough for parable fit (requires 3 points)
-        
+
 %init
 ind_hat=zeros(numel(maxInd),1);
 a_hat=zeros(numel(maxInd),1);
@@ -17,15 +17,15 @@ a_hat=zeros(numel(maxInd),1);
 %calc
 if isVel
     zerosAppendedData = [data,zeros(size(data, 1),size(data, 2)*(sizeNeighEvalInterv-1),size(data,3))];
-    spec_zp=fftshift(sum(sum(abs(fft(zerosAppendedData,[], 2)).^2, 1), 3));
+    spec_zp = fftshift(sum(abs(fft((zerosAppendedData),[], 2)), 3)); % conj or not, why?
     N_p = size(data, 2);
 else
-    zerosAppendedData=[data;zeros(size(data,1)*(sizeNeighEvalInterv-1),size(data,2),size(data,3))];
-    spec_zp = sum(sum(abs(fft(zerosAppendedData,[], 1)).^2, 2), 3)';
+    zerosAppendedData = [data;zeros(size(data,1)*(sizeNeighEvalInterv-1),size(data,2),size(data,3))];
+    spec_zp = sum(sum(abs(fft(zerosAppendedData,[], 1)), 2), 3)';
     N_p = size(data, 1);
 end
 
-for i = 1:numel(maxInd)
+for i = 1: numel(maxInd)
     if maxInd(i) == 1
         ind_hat(i) = 1;
         a_hat(i) = spec_zp(1);       

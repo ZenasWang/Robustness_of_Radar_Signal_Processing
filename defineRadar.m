@@ -3,19 +3,16 @@ function radarParameter = defineRadar(carrier_frequence , bandwidth, sample_freq
 %define the configration module parameters
 
 % Tx numbers
-radarParameter.N_Tx = length(Tx_positions);
+radarParameter.N_Tx = size(Tx_positions, 1);
 % Rx numbers
-radarParameter.N_Rx = length(Rx_positions);
-% build antenna positions
-radarParameter.P = kron(Tx_positions, ones([radarParameter.N_Rx, 1])) + ...
-                    kron(ones([radarParameter.N_Tx, 1]), Rx_positions);
+radarParameter.N_Rx = size(Rx_positions, 1);
 % for i = 1: radarParameter.N_Tx
 %     radarParameter.P = [radarParameter.P;... 
 %                     repmat(Tx_positions(i, :), radarParameter.N_Rx, 1) + Rx_positions];   % Ante Positions
 % end  
 
 % antenna position number
-radarParameter.N_pn = length(radarParameter.P);  % N_TX * N_Rx     
+radarParameter.N_pn = radarParameter.N_Tx * radarParameter.N_Rx;   
 % chirp number per pulse
 radarParameter.N_chirp = N_chirps;  
 % sample number per chirp
@@ -42,5 +39,10 @@ end
 
 % antenna_configuration
 radarParameter.c0 = 299792458;
-end
 
+% build antenna positions
+radarParameter.P = radarParameter.c0 ./ kron(radarParameter.f0', ...
+                                    ones([radarParameter.N_Rx, 1]))...
+                    .* (kron(Tx_positions, ones([radarParameter.N_Rx, 1])) + ...
+                    kron(ones([radarParameter.N_Tx, 1]), Rx_positions));
+end

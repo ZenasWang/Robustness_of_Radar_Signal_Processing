@@ -5,7 +5,6 @@ function signal = signalGenerator_SO(radarParameter, objectParameter) % input
     t_slow = (0 : radarParameter.N_chirp - 1) * radarParameter.T_chirp; 
      % in which sample
     t_fast = (0 : radarParameter.N_sample - 1) * radarParameter.T_sample;  
-    
     % phaseshift because of vr
     fD = -2 * radarParameter.f0 * objectParameter.vr / radarParameter.c0;     % 1 x N_pn
     % phaseshift because of r0
@@ -24,4 +23,10 @@ function signal = signalGenerator_SO(radarParameter, objectParameter) % input
     %n = normrnd(0, objectParameter.sigma, radarParameter.N_sample, radarParameter.N_chirp, radarParameter.N_pn);
     % add complex noise
     signal = awgn(X, objectParameter.SNR, 'measured');
+    noise = X - signal;
+    signal_power = bandpower(X(:,:,1));
+    noise_power = bandpower(noise(:,:,1));
+    signal_power/noise_power;
+    10*log10(signal_power/noise_power);
+    
 end

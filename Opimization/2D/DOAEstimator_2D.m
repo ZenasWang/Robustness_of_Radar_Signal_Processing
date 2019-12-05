@@ -25,8 +25,9 @@ for x = 1 : length(ux)%(az)
   end
 end
 [ux_ind,uy_ind] = find(B == max(B(:)));
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% 这里要做插值 inter2
+ux_ind = ux_ind(1);
+uy_ind = uy_ind(1);
+% interpretation for 2D DOA
 ux_fine = ux(ux_ind-3) : 0.00001 : ux(ux_ind+3);
 uy_fine = uy(uy_ind-3) : 0.00001 : uy(uy_ind+3);
 [X, Y] = meshgrid((ux(ux_ind-3):0.01:ux(ux_ind+3))', uy(uy_ind-3):0.01:uy(uy_ind+3));

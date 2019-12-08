@@ -3,12 +3,12 @@ clc
 radarParameter = defineRadar(94e9 , 3e9, 10e6,...
                            160, 1000, [0,0,0], [0,0,0;1,0,0;2,0,0;3,0,0;4,0,0;5,0,0;6,0,0;7,0,0]);
 objectParameter = defineObject(15, 2, [0,0,0], 1, -5);
-%波长
-lamda = radarParameter.c0 / radarParameter.f0(1);
+
+lambda = radarParameter.c0 / radarParameter.f0(1);  %波长
 N_pn = radarParameter.N_pn;   % 天线个数
-N = 20; % 初始种群规模
+N = 20;  % 初始种群规模
 % 初始化天线位置
-L = lamda * 20;
+L = lambda * 20;
 % X 为 N_pn x 3 x N
 
 % if initialized by random choise in 0-L
@@ -18,7 +18,7 @@ L = lamda * 20;
 % X(2:N_pn, 1, :) = P_x;
 
 % if initialized by uniform distribution
-X = repmat([0,0,0;1,0,0;2,0,0;3,0,0;4,0,0;5,0,0;6,0,0;7,0,0]*lamda/2, 1,1,N);
+X = repmat([0,0,0;1,0,0;2,0,0;3,0,0;4,0,0;5,0,0;6,0,0;7,0,0]*lambda/2, 1,1,N);
 % % 初始化方差
 sigma = L^2 / N_pn^2;
 u = 0.5; % 交叉比率
@@ -77,7 +77,7 @@ subplot(2,1,1)
 plot(1:T,max_f,'b',1:T,mean_f,'g')
 ux = -2 : 0.01 : 2;
 for i = 1: size(ux,2)
-    Ambi(i) = ambiguity_func_1D(ux(i), 0, opm_P, radarParameter, objectParameter);
+    Ambi(i) = ambiguity_func(ux(i), 0, opm_P, radarParameter, objectParameter);
 end
 Ambi = Ambi/ max(Ambi(:));
 subplot(2,1,2)

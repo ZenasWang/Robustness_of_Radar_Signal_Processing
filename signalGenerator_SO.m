@@ -19,14 +19,15 @@ function signal = signalGenerator_SO(radarParameter, objectParameter) % input
           * exp(1j * 2 * pi * fD(ceil(i/radarParameter.N_Rx)) * t_slow)... % 1 x N_T_chirp
           * exp(-1j * 2 * pi * radarParameter.f0(ceil(i/radarParameter.N_Rx)) / radarParameter.c0... 
                            * radarParameter.P(i, :) * objectParameter.u');
+%         X_n(:, :, i) = awgn(X(:, :, i), objectParameter.SNR, 'measured');
     end   
     %n = normrnd(0, objectParameter.sigma, radarParameter.N_sample, radarParameter.N_chirp, radarParameter.N_pn);
     % add complex noise
     signal = awgn(X, objectParameter.SNR, 'measured');
-    noise = X - signal;
+    noise = signal - X;
     signal_power = bandpower(X(:,:,1));
     noise_power = bandpower(noise(:,:,1));
-    signal_power/noise_power;
-    10*log10(signal_power/noise_power);
+    signal_SNR = 10*log10(signal_power/noise_power);
+    objectParameter.SNR;
     
 end

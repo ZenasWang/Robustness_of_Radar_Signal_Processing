@@ -25,6 +25,8 @@ uy = -1 : 0.01 : 1;
 % Ambi0 = arrayfun(ambi_fun_temp, UX, UY);
 % toc
 % Ambi0(100,200)
+
+Ambi = zeros(length(ux), length(uy));
 for x = 1 : length(ux)%(az)
   for y = 1 : length(uy)%(el = 0)
     Ambi(x,y) = ambiguity_func(ux(x), uy(y), P, radarParameter, objectParameter);
@@ -42,13 +44,13 @@ under_half_mat = [ux(under_half_x_ind)', uy(under_half_y_ind)'];
 dist_to_mainlobe = sqrt(sum(under_half_mat .^2, 2));
 min_dist_to_mainlobe = find(dist_to_mainlobe == min(dist_to_mainlobe(:)));
 u_3db = under_half_mat(min_dist_to_mainlobe, :);
-beta = 1.5;
+beta = 1.3;
 u_3db_x = beta * abs(u_3db(1,1));
 u_3db_y = beta * abs(u_3db(1,2));
 
 ux_for_sll = [-1:0.01:-u_3db_x, u_3db_x:0.01:1];
 uy_for_sll = [-1:0.01:-u_3db_y, u_3db_y:0.01:1];
-
+Ambi_out_3db = zeros(length(ux_for_sll), length(uy_for_sll));
 for x = 1 : length(ux_for_sll)  %(az)
   for y = 1 : length(uy_for_sll)    %(el)
     Ambi_out_3db(x,y) = ambiguity_func(ux_for_sll(x), uy_for_sll(y), P, radarParameter, objectParameter);

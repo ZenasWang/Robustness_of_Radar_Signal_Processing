@@ -21,14 +21,15 @@ X(2:N_pn, 2, :) = P_y;
 
 % if initialized by uniform distribution
 % X = repmat([0,0,0;1,0,0;0,1,0;1,1,0;0,2,0;2,0,0;2,1,0;1,2,0;2,2,0]*lambda/2, 1,1,N);
-% % 初始化方差
-% sigma = L^2 / sqrt(N_pn)^2;
-sigma = L^2 / N_pn^2;
+
+% 初始化方差
+sigma = L^2 / sqrt(N_pn)^2;
+% sigma = L^2 / N_pn^2;
 u = 0.5; % 交叉比率
 T = 50; % 迭代次数
 maxf = Inf; % 记录最大适应度
 CRB0 = CRB_func_2D(radarParameter.P, radarParameter, objectParameter);
-sll0 = get_SLL_2D(radarParameter.P, radarParameter, objectParameter);
+sll0 = get_SLL_2D_use_image(radarParameter.P, radarParameter, objectParameter);
 fprintf("iteration: 0, CRB: %.5e, sll:%.2f \n", CRB0, sll0);
 for t = 1:T
    num_children=1;
@@ -75,7 +76,7 @@ for t = 1:T
        opm_P = U(:,:,I(1));
    end
    max_f(t) = CRB_func_2D(opm_P, radarParameter, objectParameter);
-   sll(t) = get_SLL_2D(opm_P, radarParameter, objectParameter);
+   sll(t) = get_SLL_2D_use_image(opm_P, radarParameter, objectParameter);
       fprintf("iteration: %d, CRB: %.5e, sll:%.2f \n", t, max_f(t), sll(t));
    mean_f(t) = mean(eva(I1)); % 计算每代平均适应度
    if t >= 10 && mean(abs([max_f(t) - max_f(t-1), max_f(t-1) - max_f(t-2),...
@@ -94,15 +95,14 @@ for x = 1 : length(ux)%(az)
     Ambi_mat(x,y) = ambiguity_func(ux(x), uy(y), opm_P, radarParameter, objectParameter);
   end
 end
-max(Ambi_mat(:))
 Ambi_mat = Ambi_mat / max(Ambi_mat(:));
-subplot(2,1,2)
-surf(ux,uy, Ambi_mat)
-axis('equal')
+subplot(2,1,2);
+surf(ux,uy, Ambi_mat);
+axis('equal');
 
 function [value] = fitness_func_2D(P, radarParameter, objectParameter)
 CRB = CRB_func_2D(P, radarParameter, objectParameter);
-SLL = get_SLL_2D(P, radarParameter, objectParameter);
+SLL = get_SLL_2D_use_image(P, radarParameter, objectParameter);
 if SLL <= 0.5
     beta = 0;
 else

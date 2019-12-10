@@ -1,15 +1,15 @@
-function [targetList] = signalProcessing( rawData, radarParameter )
+% function [targetList] = signalProcessing( rawData, radarParameter )
 %RADARSIGNALPROCESSING: Signal Processing of the Radar Signal to get the
 %output as a dected target list with estimated range, velocity and DOA
 
-% % example setting for try
-% radarParameter = defineRadar(77e9 , 3e9, 10e6,...
-%                            160, 1000, [0,0,0], [0,0,0;1,0,0;0,1,0;1,1,0;0,2,0;2,0,0;2,1,0;1,2,0;2,2,0]);
-% objectParameter1 = defineObject(15, 2, [0.554,0.329,0], 1, -15);
-% objectParameter2 = defineObject(15, 2, [0.5,0.3,0], 1, -5);
-% radarSignal1 = signalGenerator_SO(radarParameter, objectParameter1);
-% radarSignal2 = signalGenerator_SO(radarParameter, objectParameter2);
-% rawData = radarSignal1;
+% example setting for try
+radarParameter = defineRadar(77e9 , 3e9, 10e6,...
+                           160, 1000, [0,0,0], [0,0,0;1,0,0;0,1,0;1,1,0;0,2,0;2,0,0;2,1,0;1,2,0;2,2,0]);
+objectParameter1 = defineObject(15, 2, [0.5,0.3,0], 1, -16);
+objectParameter2 = defineObject(15, 2, [0.5,0.3,0], 1, -5);
+radarSignal1 = signalGenerator_SO(radarParameter, objectParameter1);
+radarSignal2 = signalGenerator_SO(radarParameter, objectParameter2);
+rawData = radarSignal1;
 
 % define cfar parameters
 numTrainingCells = 20;
@@ -27,7 +27,7 @@ fft_range = fft(radarData, size(radarData, 1), 1); % * sqrt(size(radarData, 1))
 rangeSpec = sum(abs(fft_range).^2, 2);
 % sum of all range spectra of the antennas
 rangeSpec_sum = sum(rangeSpec, 3); % N_sample x 1
-plot(rangeSpec_sum)
+% plot(rangeSpec_sum)
 % ax = axes;
 % plot(abs(fft_range(:,1,1)))
 % ax.YGrid = 'on';
@@ -94,4 +94,4 @@ for actRangeTarg = 1 : numel(rangeSpecMaxPos)
     targetList = [actTargets; targetList];
 %     pulse_compression = [ pulse_compression_row;pulse_compression];
 end
-end
+% end

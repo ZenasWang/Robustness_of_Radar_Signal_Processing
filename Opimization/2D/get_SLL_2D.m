@@ -1,11 +1,11 @@
-function [SLL] = get_SLL_2D(P, radarParameter, objectParameter)
+% function [SLL] = get_SLL_2D(P, radarParameter, objectParameter)
 
 % clc
 % clear
-% radarParameter = defineRadar(94e9 , 3e9, 10e6,...
-%                            160, 1000, [0,0,0], [0,0,0;1,0,0;0,1,0;1,1,0;0,2,0;2,0,0;2,1,0;1,2,0;2,2,0]);
-% objectParameter = defineObject(15, 2, [0,0,0], 1, -5);
-% P = radarParameter.P;
+radarParameter = defineRadar(94e9 , 3e9, 10e6,...
+                           160, 1000, [0,0,0], [0,0,0;1,0,0;0,1,0;1,1,0;0,2,0;2,0,0;2,1,0;1,2,0;2,2,0]);
+objectParameter = defineObject(15, 2, [0,0,0], 1, -5);
+P = radarParameter.P;
 
 % wave length
 lamda = radarParameter.c0 / radarParameter.f0(1);
@@ -58,4 +58,4 @@ for x = 1 : length(ux_for_sll)  %(az)
 end
 % [SL_ux_ind, SL_uy_ind] = find(Ambi_out_3db == max(Ambi_out_3db(:)));
 SLL = max(Ambi_out_3db(:)) / main_lobe;
-end
+% end

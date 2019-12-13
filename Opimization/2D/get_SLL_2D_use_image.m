@@ -18,6 +18,7 @@ for x = 1 : length(ux)%(az)
 end
 % surf(ux, uy, Ambi)
 
+% get local max of ambiguity function
 peaks = imregionalmax(Ambi);
 peaksIdx_struct = regionprops(peaks,'PixelIdxList');
 % figure

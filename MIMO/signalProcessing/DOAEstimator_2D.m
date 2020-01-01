@@ -48,7 +48,8 @@ parfor i = 1 : size(u_array, 1)
     cost_func(i) = abs(arrayResponse' * X_ideal).^2;
 end
 cost_func_mat = reshape(cost_func, numel(ux), numel(uy));
-
+imagesc(cost_func_mat)
+colormap("jet")
 [ux_ind,uy_ind] = find(cost_func_mat == max(cost_func_mat(:)));
 ux_ind = ux_ind(1);
 uy_ind = uy_ind(1);

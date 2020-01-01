@@ -15,7 +15,7 @@ radarData = rawData .* windowData;
 
 % 1D-fft range to detect targets in range direction
 fft_range = fft(radarData, size(radarData, 1), 1); % * sqrt(size(radarData, 1)) 
-rangeSpec = sum(abs(fft_range), 2);
+rangeSpec = sum(abs(fft_range).^2, 2);
 % sum of all range spectra of the antennas
 rangeSpec_sum = sum(rangeSpec, 3); % N_sample x 1
 
@@ -42,7 +42,7 @@ for actRangeTarg = 1 : numel(rangeSpecMaxPos)
     
     % sum every layer after fft
     actVelSpec = fftshift(fft(fft_range(actRangeBin,:,:), size(radarData, 2),2),2); % sqrt(size(radarData, 2))
-    actVelSpecSum = sum(abs(actVelSpec), 3)';
+    actVelSpecSum = sum(abs(actVelSpec).^2, 3)';
     
     % define velocity cfar detector 
     vel_detector = phased.CFARDetector('Method', 'OS', 'NumTrainingCells', numTrainingCells,...

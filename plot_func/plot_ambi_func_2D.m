@@ -8,6 +8,8 @@ for i = 1 : size(ux,2)
     end
 end
 Ambi = Ambi/ max(Ambi(:));
+% imagesc(Ambi)
+% colormap("jet")
 surf(ux,uy, Ambi)
 axis('equal')
 end

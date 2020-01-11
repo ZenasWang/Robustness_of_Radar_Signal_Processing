@@ -1,4 +1,4 @@
-function [Tx, Rx] = uniform_arrays_2D(Lmax, N_Tx, N_Rx)
+function [Tx, Rx] = uniform_arrays_2D(Lmax, N_Tx, N_Rx, P_plot)
 % a function to generate uniform array
 % return Tx and Rx array
 
@@ -13,4 +13,12 @@ Tx(:, 2) = repmat((interval_Tx : interval_Tx : Lmax-interval_Tx)', 2, 1);
 Rx(1:N_Rx/2, 2) = 0;
 Rx(N_Tx/2+1:N_Rx, 2) = Lmax;
 Rx(:, 1) = repmat((interval_Rx : interval_Rx : Lmax-interval_Rx)', 2, 1);
+
+if P_plot
+    plot(Tx(:,1), Tx(:,2), '*r');
+    hold on;
+    plot(Rx(:,1), Rx(:,2), '*b');
+    hold off
+    axis([-1, Lmax+1, -1, Lmax+1], 'equal')
+end
 end

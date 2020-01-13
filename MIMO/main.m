@@ -1,10 +1,10 @@
 clc;
 clear;
-objectParameter1 = defineObject(15, 2, [0.5126,0.3323], 1, -5);
+objectParameter1 = defineObject(15, 2, [0.5826,0.3323], 1, -10);
 objectParameter2 = defineObject(14.25, 1.34, [0.5126,0.3323], 1, -5);
 
-[Tx_positions, Rx_positions] = uniform_arrays_2D(11, 20, 20, false); % without wavelength
-radarParameter = defineRadar(94e9, 3e9, 10e6, 160, 1000, Tx_positions, Rx_positions);
+[Tx, Rx] = uniform_arrays_2D(3, 4, 4, 0); % without wavelength
+radarParameter = defineRadar(94e9, 3e9, 10e6, 160, 1000, Tx, Rx);
 tic
 rawData1 = signalGenerator_SO(radarParameter, objectParameter1);
 

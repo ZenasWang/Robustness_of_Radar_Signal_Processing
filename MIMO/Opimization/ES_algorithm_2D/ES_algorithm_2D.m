@@ -4,24 +4,32 @@ close all;
 
 N_Tx = 20;
 N_Rx = 4;
-min_interval = 0.1e-3;
+SNR = -5;
+min_interval = 0.1e-3;  % unit:m
 
-[Tx, Rx] = random_arrays_2D(49, N_Tx, N_Rx, false);
+[Tx, Rx] = random_arrays_2D(31, N_Tx, N_Rx, false);
 radarParameter = defineRadar(94e9, 3e9, 10e6, 160, 1000, Tx, Rx);
 
-objectParameter = defineObject(15, 2, [0, 0], 1, -5);
+objectParameter = defineObject(15, 2, [0, 0], 1, SNR);
 N_pn = radarParameter.N_pn;   % number of all virtual antenna
 % lagest distance between antennas, 10 cm
 Lmax = floor(0.1/(radarParameter.wavelength/2));
+% unit 1/2 wavelength
 
 N = 1000;  % first population number
 
 % % X 为 N_pn x 3 x N
 % % if initialized by random choise in 0-L
 X = zeros(N_Tx + N_Rx, 2, N);
-for i = 1:N
-[Tx, Rx] = random_arrays_2D(Lmax, N_Tx, N_Rx, false);
-X(:,:,i) = [Tx; Rx];
+i = 1;
+while i <= N
+    [Tx, Rx] = random_arrays_2D(Lmax, N_Tx, N_Rx, false);
+    temp = [Tx; Rx];
+    if(min_distance_1D(temp(:,1)) >= min_interval/(radarParameter.wavelength/2) ...
+            && min_distance_1D(temp(:,2)) >= min_interval/(radarParameter.wavelength/2))
+        X(:,:,i) = temp;
+        i = i + 1;
+    end
 end
 
 % initialize variance strength
@@ -30,7 +38,7 @@ sigma = Lmax^2 / (N_Tx + N_Rx)^2;
 % cross ratio
 u = 0.5;
 % iteration bumbers
-T = 100;
+T = 120;
 
 % track maximum fitness for every iteration
 maxf = Inf;
@@ -72,10 +80,9 @@ for t = 1 : T
    % μ/λ是压力比，其越大选择压力越大。
    % u + λ策略改为U=[offspring, X]
    eva = zeros(1, size(U,3));
-   i = 0;
    parfor i = 1: size(U,3)
        temp = U(:, :, i);   % N_pn x 3
-       temp_P = to_virture_arrays(temp(1:N_Tx, :), temp(N_Tx+1:end, :), radarParameter)
+       temp_P = to_virture_arrays(temp(1:N_Tx, :), temp(N_Tx+1:end, :), radarParameter);
        eva(i) = fitness_func_2D(temp_P, radarParameter, objectParameter);   %把子代的70个个体适应度方程写出来
    end
 %    fprintf("successfully evoluted\n")
@@ -89,6 +96,7 @@ for t = 1 : T
        opm_P_unit = U(:,:,I(1));
        opm_P = to_virture_arrays(opm_P_unit(1:N_Tx, :), opm_P_unit(N_Tx+1:end, :), radarParameter);
    end
+   
    max_f(t) = trace(CRB_func_2D(opm_P, radarParameter, objectParameter));
    sll(t) = get_SLL_2D_use_image(opm_P, radarParameter, objectParameter);
       fprintf("iteration: %d, CRB: %.5e, sll:%.2f \n", t, max_f(t), sll(t));
@@ -100,32 +108,9 @@ for t = 1 : T
 end
 
 save("ES_results_20x4_SNR-5.mat")
-
 %%
-figure;
-subplot(4,1,1)
-plot(1:t, max_f, 'b')
+figure(1);
+plot(1:T, max_f, 'b')
 
-ux = -1 : 0.01 : 1;
-uy = -1 : 0.01 : 1;
-for x = 1 : length(ux)%(az)
-  for y = 1 : length(uy)%(el = 0)
-    Ambi_mat(x,y) = ambiguity_func(ux(x), uy(y), opm_P, radarParameter, objectParameter);
-  end
-end
-Ambi_mat = Ambi_mat / max(Ambi_mat(:));
-subplot(4,1,[2:4]);
-[~,a_r]=contourf(ux,uy, Ambi_mat, 100, 'linestyle', 'none');
-axis('equal');
-xlabel('ux')
-ylabel('uy')
-c_r=colorbar;
-% print data
-axis off
-cr_ticks=c_r.Ticks;
-c_r.Ticks=[];
-% print axes
-axis on
-c_r.Ticks=cr_ticks;
-ylabel(c_r,'beta') 
-grid off
+figure(2);
+plot_ambi_func_2D(opm_P, radarParameter, objectParameter);

@@ -1,15 +1,11 @@
 function [Tx, Rx] = random_arrays_2D(Lmax, N_Tx, N_Rx, P_plot)
-% a function to generate uniform array
+% a function to generate random array
 % return Tx and Rx array
 Tx = Lmax * rand(N_Tx, 2);
 Rx = Lmax * rand(N_Rx, 2);
+Tx(1, :) = [0, 0];
 
 if P_plot
-    plot(Tx(:,1), Tx(:,2), '*r');
-    hold on;
-    plot(Rx(:,1), Rx(:,2), '*b');
-    hold off
-    axis([-1, Lmax+1, -1, Lmax+1], 'equal')
-    
+    plot_array_pos(Lmax, Tx, Rx);
 end
 end

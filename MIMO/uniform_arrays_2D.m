@@ -15,10 +15,6 @@ Rx(N_Tx/2+1:N_Rx, 2) = Lmax;
 Rx(:, 1) = repmat((interval_Rx : interval_Rx : Lmax-interval_Rx)', 2, 1);
 
 if P_plot
-    plot(Tx(:,1), Tx(:,2), '*r');
-    hold on;
-    plot(Rx(:,1), Rx(:,2), '*b');
-    hold off
-    axis([-1, Lmax+1, -1, Lmax+1], 'equal')
+    plot_array_pos(Lmax, Tx, Rx);
 end
 end

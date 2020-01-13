@@ -1,5 +1,6 @@
 function [min_dis] = min_distance_1D(array)
-
+% a function te return the minist interval 
+% between every elements in an array
 sorted_arr = sort(array);
 min_distance = Inf;
 for i = 1 : length(sorted_arr)-1

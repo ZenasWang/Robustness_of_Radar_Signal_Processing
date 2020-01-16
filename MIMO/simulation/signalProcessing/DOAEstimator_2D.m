@@ -1,15 +1,18 @@
-function [ angle ] = DOAEstimator_2D( arrayResponse,radarParameter, r0_hat, vr_hat)
-% Maximum likelihood estimation for DOA, get cost function directly
-% Bartlett Spectrum
+function [ angle ] = DOAEstimator_2D(arrayResponse, r0_hat, vr_hat, radarParameter)
+% Maximum likelihood estimation for DOA, use cost function directly
+% return estimated [ux, uy]
+
 % - arrayResponse    := signal after pulse compression
-% - radarParameters  := The defines Radar Modulation Parameters
-% - angle            := The estimated DOA
+% - r0_hat           := the estimated range
+% - vr_hat           := the estimated speed
+% - radarParameters  := the defined Radar Modulation Parameters
 
 % angle estimation
 ux = -1 : 0.001 : 1;
 uy = 0 : 0.001 : 1/2;
 
-tpn = [-radarParameter.N_Tx/2 : -1, 1 : radarParameter.N_Tx/2] * radarParameter.T_pn;
+tpn = [-radarParameter.N_Tx/2 : -1 1 : radarParameter.N_Tx/2] * radarParameter.T_pn;
+
 E = -2*pi /radarParameter.c0 * [2 * radarParameter.f0 * ones(radarParameter.N_pn, 1),...
                                 2 * radarParameter.f0 * kron(tpn', ones([radarParameter.N_Rx,1])),...
                                 radarParameter.f0 * radarParameter.P];
@@ -42,12 +45,14 @@ E = -2*pi /radarParameter.c0 * [2 * radarParameter.f0 * ones(radarParameter.N_pn
 % more faster version, using parallel computation for one loop
 u_array = [kron(ones(numel(uy), 1), ux'), kron(uy', ones(numel(ux), 1))];
 cost_func = zeros(1, size(u_array,1));
-parfor i = 1 : size(u_array, 1)
+for i = 1 : size(u_array, 1)
     X_ideal = exp(1j * E * [r0_hat; vr_hat; u_array(i, :)']);
     % Bartlett Spectrum
     cost_func(i) = abs(arrayResponse' * X_ideal).^2;
 end
+
 cost_func_mat = reshape(cost_func, numel(ux), numel(uy));
+
 [ux_ind,uy_ind] = find(cost_func_mat == max(cost_func_mat(:)));
 ux_ind = ux_ind(1);
 uy_ind = uy_ind(1);

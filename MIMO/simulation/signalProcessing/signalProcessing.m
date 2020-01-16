@@ -1,6 +1,10 @@
 function [targetList] = signalProcessing( rawData, radarParameter )
-%RADARSIGNALPROCESSING: Signal Processing of the Radar Signal to get the
+%Signal Processing of the Radar Signal to get the
 %output as a dected target list with estimated range, velocity and DOA
+
+% - rawData         := the simulated signal with noise
+% - radarParameter  := defined radar parameters
+% - targetList      := estimated tagets information [range, speed, ux, uy]
 
 % define cfar parameters
 numTrainingCells = 20;
@@ -15,34 +19,41 @@ radarData = rawData .* windowData;
 
 % 1D-fft range to detect targets in range direction
 fft_range = fft(radarData, size(radarData, 1), 1); % * sqrt(size(radarData, 1)) 
-rangeSpec = sum(abs(fft_range).^2, 2);
+rangeSpec = sum(abs(fft_range), 2);
+
 % sum of all range spectra of the antennas
-rangeSpec_sum = sum(rangeSpec, 3); % N_sample x 1
+rangeSpec_sum = sum(rangeSpec, 3).^2; % N_sample x 1
 
 % detect targets range
+
 % set the detector parameter, os-cfar detector
 range_detector = phased.CFARDetector('Method', 'OS', 'NumTrainingCells', numTrainingCells,...
     'NumGuardCells', numGuardCells, 'ProbabilityFalseAlarm', probabilityFalseAlarm, ...
       'Rank', 15);
+  
 % get the binary Mask after cfar
 CFAR_binaryMask = range_detector(rangeSpec_sum, 1:numel(rangeSpec_sum));
+
 % cluster to find the different target
 rangeSpecMaxPos = clusterCFARMask(rangeSpec_sum, CFAR_binaryMask');
+
 % peak detection and interpolation to got the real maxIndes
 peakPos = peakInterp(rangeSpecMaxPos,radarData,false);
+
 % map to real ranges
 rangeDetections = (radarParameter.N_sample - peakPos + 1)...
         * radarParameter.c0/(2*radarParameter.B);  % convert to metric units
                                               % +1 or not
 % detect targets velocity
 targetList=[];
+
 % loop to calculate the velocity
 for actRangeTarg = 1 : numel(rangeSpecMaxPos)
     actRangeBin = rangeSpecMaxPos(actRangeTarg);
     
     % sum every layer after fft
     actVelSpec = fftshift(fft(fft_range(actRangeBin,:,:), size(radarData, 2),2),2); % sqrt(size(radarData, 2))
-    actVelSpecSum = sum(abs(actVelSpec).^2, 3)';
+    actVelSpecSum = (sum(abs(actVelSpec), 3).^2)';
     
     % define velocity cfar detector 
     vel_detector = phased.CFARDetector('Method', 'OS', 'NumTrainingCells', numTrainingCells,...
@@ -69,8 +80,8 @@ for actRangeTarg = 1 : numel(rangeSpecMaxPos)
     for actVelTarg = 1 : numel(velSpecMaxPos)
         actVelBin = velSpecMaxPos(actVelTarg);
         arrayResponse = squeeze(actVelSpec(:, actVelBin, :));
-        angle(actVelTarg, :) = DOAEstimator_2D(arrayResponse, radarParameter, ...
-        rangeDetections(actRangeTarg), velDetections(actVelTarg));
+        angle(actVelTarg, :) = DOAEstimator_2D(arrayResponse, ...
+        rangeDetections(actRangeTarg), velDetections(actVelTarg), radarParameter);
     end
     %create a target information
     actTargets = [repmat(rangeDetections(actRangeTarg), numel(velDetections), 1),...

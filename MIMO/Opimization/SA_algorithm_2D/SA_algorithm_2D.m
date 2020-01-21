@@ -4,9 +4,9 @@ clc
 
 Lmax = 40; % max positon of antennas, unit by wavelength/2
 N_Tx = 20;
-N_Rx = 20;
-[Tx_positions, Rx_positions] = random_arrays_2D(Lmax, N_Tx, N_Rx, false);
-radarParameter = defineRadar(94e9, 3e9, 10e6, 160, 1000, Tx_positions, Rx_positions);
+N_Rx = 4;
+[Tx, Rx] = random_arrays_2D(Lmax, N_Tx, N_Rx, false);
+radarParameter = defineRadar(94e9, 3e9, 10e6, 160, 1000, Tx, Rx);
 objectParameter = defineObject(15, 2, [0.5126,0.3323], 1, -5);
 N_pn = radarParameter.N_pn;   % number of all virtual antenna
 
@@ -20,7 +20,7 @@ N = 1000;
 Xs = zeros(N_pn, 2, N);
 % generate N initialized antenna
 
-for i = 1: N
+parfor i = 1: N
     Xs(:,:,i) = random_genrate_arrays(Lmax, N_Tx, N_Rx, radarParameter);
 end
 X0_ind = randi(N);

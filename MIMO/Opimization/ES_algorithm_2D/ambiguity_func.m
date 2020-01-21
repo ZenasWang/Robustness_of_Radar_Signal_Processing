@@ -1,4 +1,4 @@
-function [ambi_func] = ambiguity_func(ux, uy, P, radarParameter, objectParameter)
+function [ambi_func] = ambiguity_func(ux, uy, P, radarParameter)
 % AMBIGUITY_FUNC
 % use ambiguity function to set constraint during optimization
 % constrain SLL lower than 1/2 main lobe

@@ -8,15 +8,16 @@ SNR = -5;
 min_interval = 0.1e-3;  % unit:m
 
 [Tx, Rx] = random_arrays_2D(31, N_Tx, N_Rx, false);
-radarParameter = defineRadar(94e9, 3e9, 10e6, 160, 1000, Tx, Rx);
 
+radarParameter = defineRadar(77e9, 224e6, 20.36e6, 256, 238, Tx, Rx);
 objectParameter = defineObject(15, 2, [0, 0], 1, SNR);
+
 N_pn = radarParameter.N_pn;   % number of all virtual antenna
 % lagest distance between antennas, 10 cm
 Lmax = floor(0.1/(radarParameter.wavelength/2));
 % unit 1/2 wavelength
 
-N = 1000;  % first population number
+N = 10;  % first population number
 
 % % X 为 N_pn x 3 x N
 % % if initialized by random choise in 0-L
@@ -43,7 +44,7 @@ T = 120;
 % track maximum fitness for every iteration
 maxf = Inf;
 CRB0 = trace(CRB_func_2D(radarParameter.P, radarParameter, objectParameter));
-sll0 = get_SLL_2D_use_image(radarParameter.P, radarParameter, objectParameter);
+sll0 = get_SLL_2D_use_image(radarParameter.P, radarParameter);
 fprintf("iteration: 0, CRB: %.5e, sll:%.2f \n", CRB0, sll0);
 
 max_f = zeros(1, T);
@@ -78,7 +79,7 @@ for t = 1 : T
    % 这里是(µ,λ)策略
    % u,λ选择策略: 从新生成的λ个体中选择 ,建议λ/μ = 7
    % μ/λ是压力比，其越大选择压力越大。
-   % u + λ策略改为U=[offspring, X]
+   % u + λ策略改为 U = [offspring, X]
    eva = zeros(1, size(U,3));
    parfor i = 1: size(U,3)
        temp = U(:, :, i);   % N_pn x 3
@@ -98,7 +99,7 @@ for t = 1 : T
    end
    
    max_f(t) = trace(CRB_func_2D(opm_P, radarParameter, objectParameter));
-   sll(t) = get_SLL_2D_use_image(opm_P, radarParameter, objectParameter);
+   sll(t) = get_SLL_2D_use_image(opm_P, radarParameter);
       fprintf("iteration: %d, CRB: %.5e, sll:%.2f \n", t, max_f(t), sll(t));
    mean_f(t) = mean(eva(I1)); % 计算每代平均适应度
 %    if t >= 10 && mean(abs([max_f(t) - max_f(t-1), max_f(t-1) - max_f(t-2),...
@@ -107,10 +108,10 @@ for t = 1 : T
 %    end
 end
 
-save("ES_results_20x4_SNR-5.mat")
+% save("ES_results_20x4_SNR-5.mat")
 %%
 figure(1);
 plot(1:T, max_f, 'b')
 
 figure(2);
-plot_ambi_func_2D(opm_P, radarParameter, objectParameter);
+plot_ambi_func_2D(opm_P, radarParameter);

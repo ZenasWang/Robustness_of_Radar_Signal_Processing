@@ -17,12 +17,12 @@ ux = 0.234;
 uy = 0.654;
 objectParameter = defineObject(15, 2, [ux,uy,sqrt(1-(ux^2 + uy^2))], 1, -5);
 
-T = 1000;
+T = 1;
 %%
 
 targetList_normal = zeros(T, 5);
 targetList_optimal = zeros(T, 5);
-parfor i = 1 : T
+for i = 1 : T
     radarSignal_normal = signalGenerator_SO(radarParameter_normal_2D, objectParameter);
     targetList_normal(i, :) = signalProcessing(radarSignal_normal, radarParameter_normal_2D);
 %     MSE_r0_normal_mat(i) = targetList_normal(1);

@@ -3,3 +3,4 @@ just_try.m
 UI_try.mlapp
 *.prj
 *.mat
+*.mat.*

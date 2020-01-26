@@ -17,7 +17,7 @@ N_pn = radarParameter.N_pn;   % number of all virtual antenna
 Lmax = floor(0.1/(radarParameter.wavelength/2));
 % unit 1/2 wavelength
 
-N = 10;  % first population number
+N = 100;  % first population number
 
 % % X 为 N_pn x 3 x N
 % % if initialized by random choise in 0-L
@@ -94,12 +94,12 @@ for t = 1 : T
    % 比较最大适应度与maxf记录值，更新maxf,同时记录x1,x2值
    if m_eval(1) < maxf
        maxf = m_eval(1);
-       opm_P_unit = U(:,:,I(1));
-       opm_P = to_virture_arrays(opm_P_unit(1:N_Tx, :), opm_P_unit(N_Tx+1:end, :), radarParameter);
+       opt_P_unit = U(:,:,I(1));
+       opt_P = to_virture_arrays(opt_P_unit(1:N_Tx, :), opt_P_unit(N_Tx+1:end, :), radarParameter);
    end
    
-   max_f(t) = trace(CRB_func_2D(opm_P, radarParameter, objectParameter));
-   sll(t) = get_SLL_2D_use_image(opm_P, radarParameter);
+   max_f(t) = trace(CRB_func_2D(opt_P, radarParameter, objectParameter));
+   sll(t) = get_SLL_2D_use_image(opt_P, radarParameter);
       fprintf("iteration: %d, CRB: %.5e, sll:%.2f \n", t, max_f(t), sll(t));
    mean_f(t) = mean(eva(I1)); % 计算每代平均适应度
 %    if t >= 10 && mean(abs([max_f(t) - max_f(t-1), max_f(t-1) - max_f(t-2),...
@@ -114,4 +114,4 @@ figure(1);
 plot(1:T, max_f, 'b')
 
 figure(2);
-plot_ambi_func_2D(opm_P, radarParameter);
+plot_ambi_func_2D(opt_P, radarParameter);

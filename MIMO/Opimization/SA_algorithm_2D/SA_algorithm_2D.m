@@ -2,70 +2,72 @@
 clear
 clc
 
-Lmax = 40; % max positon of antennas, unit by wavelength/2
 N_Tx = 20;
 N_Rx = 4;
-[Tx, Rx] = random_arrays_2D(Lmax, N_Tx, N_Rx, false);
-radarParameter = defineRadar(94e9, 3e9, 10e6, 160, 1000, Tx, Rx);
-objectParameter = defineObject(15, 2, [0.5126,0.3323], 1, -5);
-N_pn = radarParameter.N_pn;   % number of all virtual antenna
+SNR = -5;
+min_interval = 0.1e-3;  % unit:m
 
-%%
-% penalty term coefficient，should be tuned
-beta = 5e-3;
+[Tx, Rx] = random_arrays_2D(31, N_Tx, N_Rx, false);
+
+radarParameter = defineRadar(77e9, 224e6, 20.36e6, 256, 238, Tx, Rx);
+objectParameter = defineObject(15, 2, [0, 0], 1, SNR);
+N_pn = radarParameter.N_pn;   % number of all virtual antenna
+% lagest distance between antennas, 10 cm
+Lmax = floor(0.1/(radarParameter.wavelength/2));
+% unit 1/2 wavelength
 
 % X initialized by random choise one in N antennas in 0-L
 N = 1000;
+
 % N = floor(100*N_pn*2/L);
 Xs = zeros(N_pn, 2, N);
 % generate N initialized antenna
 
 parfor i = 1: N
-    Xs(:,:,i) = random_genrate_arrays(Lmax, N_Tx, N_Rx, radarParameter);
+    Xs(:,:,i) = random_genrate_arrays(Lmax, N_Tx, N_Rx, min_interval, radarParameter);
 end
+
 X0_ind = randi(N);
 X = Xs(:, :, X0_ind);
 
 % one way to initialize temperature
-E = zeros(N, 1);
+E = zeros(1, N);
 parfor i = 1: N
     E(i) = fitness_func_2D(Xs(:,:,i), radarParameter, objectParameter);
 end
-T0 = mean(E) - 1.5 * std(E,1);
+
+T0 = 0.5 * (mean(E(E < 0.5)) - 1.5 * std(E(E < 0.5), 1));
 % T0 = 0.002;
 %%
 % another to initialize temperature
 %p = exp(deltaE / T0), 
 % p = 0.75;
 % deltaE = mean(E) + std(E,1);
-% T0 = deltaE / log(p);
+% T0 = - deltaE / log(p);
 
 count = 1;
-% initializa parameters
-% lowest_t = 0.000001;      % lowest temperature
-temperature = T0 * exp(-0.07 * count);     % initial tempotature
-iter = 10;             % iteration
-% iter = floor(100*N_pn*2/L);
-full_iter = 50;
-% T_rate = 0.95;         % temperature changing rate 
 
-% 适应度方程结果
+% initializa parameters
+temperature = T0 * exp(-0.07 * count);% initial tempotature
+iter = 3;             % iteration
+% iter = floor(100*N_pn*2/L) = 630;
+full_iter = 50;
+
+% initialized fitness function
 enegy(count) = fitness_func_2D(X, radarParameter, objectParameter);  
 CRB(count) = trace(CRB_func_2D(X, radarParameter, objectParameter));
-sll(count) = get_SLL_2D_use_image(X, radarParameter, objectParameter);
+sll(count) = get_SLL_2D_use_image(X, radarParameter);
 fprintf("iteration: 1, CRB: %.5e, sll:%.2f \n", CRB(1), sll(1));
 
 % while temperature > lowest_t  % 停止迭代温度
 for count = 2 : full_iter
     for n  = 1 : iter
-%         fprintf("itering \n");
-        % 变异
-        new_X = get_new_1(L, N_pn);  
-        % new_X = get_new(X, L, N_pn);
-%         if max(sqrt(sum(new_X.^2, 2))) <= L && min(new_X(:)) >= 0
+        % generate new antenna
+        new_X = random_genrate_arrays(Lmax, N_Tx, N_Rx, min_interval, radarParameter);
+        
 %             fprintf("selected \n");
-        enegy1 = fitness_func_2D_1(X, radarParameter, objectParameter, beta);
-        enegy2 = fitness_func_2D_1(new_X, radarParameter, objectParameter, beta); 
+        enegy1 = fitness_func_2D(X, radarParameter, objectParameter);
+        enegy2 = fitness_func_2D(new_X, radarParameter, objectParameter); 
         delta_e = enegy2 - enegy1;
         % 变异后优化方程值变小了
         if delta_e < 0
@@ -81,12 +83,12 @@ for count = 2 : full_iter
 %         end
     end  
 %     count = count + 1;
-    enegy(count) = fitness_func_2D_1(X, radarParameter, objectParameter, beta);
+    enegy(count) = fitness_func_2D(X, radarParameter, objectParameter);
     CRB(count) = trace(CRB_func_2D(X, radarParameter, objectParameter));
-    sll(count) = get_SLL_2D_use_image(X, radarParameter, objectParameter);
+    sll(count) = get_SLL_2D_use_image(X, radarParameter);
     temperature = T0 * exp(-0.07*count);
 %     fprintf("temperature : %f, iteration: %d, CRB: %.5e, sll:%.2f \n", temperature, count, CRB(count), sll(count));
-    fprintf("iteration: %d, T: %.5e, CRB: %.5e, sll:%.2f \n", count, temperature, CRB(count), sll(count));
+    fprintf("iteration: %d, CRB: %.5e, sll:%.2f \n", count, CRB(count), sll(count));
 end
 opt_P = X;
 %%
@@ -98,7 +100,7 @@ ux = -1 : 0.01 : 1;
 uy = -1 : 0.01 : 1;
 for x = 1 : length(ux)%(az)
   for y = 1 : length(uy)%(el = 0)
-    Ambi_mat(x,y) = ambiguity_func(ux(x), uy(y), opt_P, radarParameter, objectParameter);
+    Ambi_mat(x,y) = ambiguity_func(ux(x), uy(y), opt_P, radarParameter);
   end
 end
 Ambi_mat = Ambi_mat / max(Ambi_mat(:));

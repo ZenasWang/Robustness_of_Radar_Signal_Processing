@@ -26,7 +26,7 @@ rangeSpec = sum(abs(fft_range), 2);
 rangeSpec_sum = sum(rangeSpec, 3).^2; % N_sample x 1
 
 % detect targets range
-stem(rangeSpec_sum)
+
 % set the detector parameter, os-cfar detector
 range_detector = phased.CFARDetector('Method', 'OS', 'NumTrainingCells', numTrainingCells,...
     'NumGuardCells', numGuardCells, 'ProbabilityFalseAlarm', probabilityFalseAlarm, ...

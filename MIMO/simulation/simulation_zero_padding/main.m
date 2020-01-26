@@ -27,7 +27,7 @@ rawData4 = signalGenerator_SO(radarParameter, objectParameter1) ...
          + signalGenerator_SO(radarParameter, objectParameter3) ...
          + signalGenerator_SO(radarParameter, objectParameter4);
      
-[targetList] = signalProcessing(rawData4, radarParameter);
+[targetList] = signalProcessing(rawData1, radarParameter);
 toc
 
 fprintf("range\t\tvelocity\tux\t\tuy\n");

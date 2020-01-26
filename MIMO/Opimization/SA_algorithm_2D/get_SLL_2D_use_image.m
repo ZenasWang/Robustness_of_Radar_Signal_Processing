@@ -1,4 +1,4 @@
-function [SLL] = get_SLL_2D_use_image(P, radarParameter, objectParameter)
+function [SLL] = get_SLL_2D_use_image(P, radarParameter)
 
 ux = -1 : 0.01 : 1;
 uy = -1 : 0.01 : 1;
@@ -6,7 +6,7 @@ uy = -1 : 0.01 : 1;
 Ambi = zeros(length(ux), length(uy));
 for x = 1 : length(ux)%(az)
   for y = 1 : length(uy)%(el)
-    Ambi(x,y) = ambiguity_func(ux(x), uy(y), P, radarParameter, objectParameter);
+    Ambi(x,y) = ambiguity_func(ux(x), uy(y), P, radarParameter);
   end
 end
 

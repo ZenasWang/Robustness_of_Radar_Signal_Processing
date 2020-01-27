@@ -5,6 +5,13 @@ function [ clusterPeaks ] = clusterCFARMask( spec, CFARmask )
 % - spec         := The range Spectrum after the FFT and sum over all Channels
 % - CFARmask     := The binary output of the CFAR
 % - clusterPeaks := The peaks bins representing the detected Targets
+if ~isrow(spec)
+    spec = spec.';
+end
+
+if ~isrow(CFARmask)
+    CFARmask = CFARmask.';
+end
 
 %calc
 absSpec = abs(spec);

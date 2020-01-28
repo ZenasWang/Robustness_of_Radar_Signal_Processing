@@ -9,7 +9,7 @@ function [ angle ] = DOAEstimator_2D(arrayResponse, r0_hat, vr_hat, radarParamet
 
 % angle estimation
 ux = -1 : 0.001 : 1;
-uy = 0 : 0.001 : 1/2;
+uy = -0.1 : 0.001 : 1/2;
 
 tpn = [-radarParameter.N_Tx/2 : -1, 1 : radarParameter.N_Tx/2] * radarParameter.T_pn;
 

@@ -1,4 +1,4 @@
-function [targetList, range_doppler, range_ux, range_uy] = signalProcessing( rawData, radarParameter )
+% function [targetList, range_ux, range_uy] = new_signalProcessing( rawData, radarParameter )
 % signal Processing of the Radar Signal to get the
 % output as a dected target list with estimated range, velocity and DOA
 
@@ -7,6 +7,8 @@ function [targetList, range_doppler, range_ux, range_uy] = signalProcessing( raw
 % - targetList      := estimated tagets information [range, speed, ux, uy]
 % - range_ux        := matix of range_ux_figure
 % - range_uy        := matix of range_uy_figure
+
+rawData = rawData4;
 
 % define cfar parameters
 numTrainingCells = 40;
@@ -24,7 +26,6 @@ radarData = rawData;
 arrayResponse_3D = fft2(radarData, zeroPadingFactor * size(radarData, 1), ...
                         zeroPadingFactor * size(radarData, 2));
 arrayResponse_3D = fftshift(arrayResponse_3D, 2);
-range_doppler = squeeze(sum(abs(arrayResponse_3D).^2, 3));
 
 % detect targets in range direction
 rangeSpec = sum(abs(arrayResponse_3D).^2, 2);
@@ -54,8 +55,7 @@ rangeDetections = (zeroPadingFactor * radarParameter.N_sample - peakPos + 1)/zer
 %%
 % detect targets velocity
 targetList = [];
-range_ux = [];
-range_uy = [];
+actIndexList = [];
 % loop to calculate the velocity
 for actRangeTarg = 1 : numel(rangeSpecMaxPos)
     actRangeBin = rangeSpecMaxPos(actRangeTarg);
@@ -86,34 +86,87 @@ for actRangeTarg = 1 : numel(rangeSpecMaxPos)
                     radarParameter.f0 * radarParameter.N_chirp);
     
     % angle estimation
-    angle = zeros(numel(peakPos),2);
     for actVelTarg = 1 : numel(velSpecMaxPos)
         actVelBin = velSpecMaxPos(actVelTarg);
         arrayResponse = squeeze(actVelSpec(:, actVelBin, :));
-        angle(actVelTarg, :) = DOAEstimator_2D(arrayResponse, ...
-        rangeDetections(actRangeTarg), velDetections(actVelTarg), radarParameter);
-        arrayResponse_2D = squeeze(arrayResponse_3D(:, actVelBin, :));
-        norm_cost_func_ux = range_ux_figure(arrayResponse_2D, rangeDetections(actRangeTarg)...
-            , velDetections(actVelTarg), angle(actVelTarg, 2), radarParameter);
-        norm_cost_func_uy = range_uy_figure(arrayResponse_2D, rangeDetections(actRangeTarg)...
-            , velDetections(actVelTarg), angle(actVelTarg, 1), radarParameter);
 
-        if(~any(range_ux))
+        angle = DOAEstimator_2D(arrayResponse, ...
+        rangeDetections(actRangeTarg), velDetections(actVelTarg), radarParameter);
+    
+        %create a target information
+        actIndex = [rangeSpecMaxPos(actRangeTarg), velSpecMaxPos(actVelTarg)];
+        actTargets = [rangeDetections(actRangeTarg), velDetections(actVelTarg), angle];
+        targetList = [actTargets; targetList];
+        actIndexList = [actIndex; actIndexList];
+
+    end
+    end
+end
+
+
+% 画range ux时，保证vr和uy不同，若相同则把目标去除
+% 画range uy时，保证vr和uy不同，若相同则把目标去除
+%%
+list = [actIndexList, targetList];
+list = sortrows(list, 2);
+if any(list)
+    vel = list(1, 2);
+end
+delList = [];
+if(size(list, 1) >= 2)
+for i = 2 : size(list, 1)
+    if vel == list(i, 2)
+        delList = [i, delList];
+    else
+       vel = list(i, 2);
+    end
+end
+
+for i = 1 : numel(delList)
+    list(i, :) = [];
+end
+% delList = [];
+% 
+% if(size(list, 1) >= 2)
+% list = sortrows(list, 6);
+% uy = list(1, 6);
+% for i = 2 : size(list, 1)
+%     if abs(uy - list(i, 6)) <= 1e-4
+%         delList = [i, delList];
+%     else
+%        uy = list(i, 6);
+%     end
+% end
+% for i = 1 : numel(delList)
+%     list(i, :) = [];
+% end
+% end
+end   
+%%
+list
+range_ux = [];
+range_uy = [];
+
+for i = 1 : size(list, 1)
+arrayResponse_2D = squeeze(arrayResponse_3D(:, list(i, 2), :));
+norm_cost_func_ux = range_ux_figure(arrayResponse_2D, list(i, 3)...
+    , list(i, 4), list(i, 6), radarParameter);
+norm_cost_func_uy = range_uy_figure(arrayResponse_2D, list(i, 3)...
+    , list(i, 4), list(i, 5), radarParameter);
+
+if(~any(range_ux))
             range_ux = norm_cost_func_ux;
             range_uy = norm_cost_func_uy;
         else
             range_ux = range_ux + norm_cost_func_ux;
             range_uy = range_uy + norm_cost_func_uy;
-        end
-    end
-    
-    %create a target information
-    actTargets = [repmat(rangeDetections(actRangeTarg), numel(velDetections), 1),...
-                velDetections, angle];
-            
-    else
-        actTargets=[];
-    end
-    targetList = [actTargets; targetList];
 end
 end
+
+subplot(1, 2, 1);
+plot_range_DOA(range_ux, "ux");
+
+subplot(1, 2, 2);
+plot_range_DOA(range_uy, "uy");
+
+% end

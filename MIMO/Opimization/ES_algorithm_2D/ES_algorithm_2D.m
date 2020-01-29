@@ -12,17 +12,17 @@ min_interval = 0.1e-3;  % unit:m
 radarParameter = defineRadar(77e9, 224e6, 20.36e6, 256, 238, Tx, Rx);
 objectParameter = defineObject(15, 2, [0, 0], 1, SNR);
 
-N_pn = radarParameter.N_pn;   % number of all virtual antenna
-% lagest distance between antennas, 10 cm
+% lagest distance between antennas, 10 cm, unit 1/2 wavelength
 Lmax = floor(0.1/(radarParameter.wavelength/2));
-% unit 1/2 wavelength
 
-N = 100;  % first population number
+% first population number
+N = 1000;
 
-% % X 为 N_pn x 3 x N
-% % if initialized by random choise in 0-L
+% X 为 N_pn x 2 x N
+% if initialized by random choise in 0-L
 X = zeros(N_Tx + N_Rx, 2, N);
 i = 1;
+
 while i <= N
     [Tx, Rx] = random_arrays_2D(Lmax, N_Tx, N_Rx, false);
     temp = [Tx; Rx];
@@ -34,12 +34,13 @@ while i <= N
 end
 
 % initialize variance strength
-sigma = Lmax^2 / (N_Tx + N_Rx)^2;
+sigma = Lmax^2 / (N_Tx+N_Rx-1)^2;
 
 % cross ratio
 u = 0.5;
+
 % iteration bumbers
-T = 120;
+T = 200;
 
 % track maximum fitness for every iteration
 maxf = Inf;
@@ -62,14 +63,14 @@ for t = 1 : T
        % generate child
        child = u * pa1 + (1-u) * pa2;
        % variance will be change with the increase of iteration
-       sigma_new = sigma * exp(2 * (2 * (N_Tx + N_Rx))^(-1/2) * randn(N_Tx+N_Rx-1, 2));
+       sigma_new = sigma * exp(2 * (2 * (N_Tx+N_Rx-1))^(-1/2) * randn(N_Tx+N_Rx-1, 2));
        % children value changed by variance
        Y = child + sqrt([[0,0];sigma_new]) .* [[0,0];randn(N_Tx+N_Rx-1, 2)];
        % gaurentee the largest position of antannas are smaller than L
        if max(Y(:)) <= Lmax && min(Y(:)) >= 0 && ...
            min_distance_1D(Y(:,1)) >= min_interval/(radarParameter.wavelength/2) && ...
            min_distance_1D(Y(:,2)) >= min_interval/(radarParameter.wavelength/2)% 后面加天线距离的约束
-       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
            % if meet the condition, save child value and go to next child
            offspring(:,:,num_children) = Y;
            num_children = num_children + 1;

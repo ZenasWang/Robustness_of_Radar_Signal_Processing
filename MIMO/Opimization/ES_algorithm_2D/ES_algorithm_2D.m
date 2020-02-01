@@ -15,6 +15,9 @@ objectParameter = defineObject(15, 2, [0, 0], 1, SNR);
 % lagest distance between antennas, 10 cm, unit 1/2 wavelength
 Lmax = floor(0.1/(radarParameter.wavelength/2));
 
+% relative min interval
+min_interval_cal = min_interval/(radarParameter.wavelength/2);
+
 % first population number
 N = 1000;
 
@@ -26,8 +29,8 @@ i = 1;
 while i <= N
     [Tx, Rx] = random_arrays_2D(Lmax, N_Tx, N_Rx, false);
     temp = [Tx; Rx];
-    if(min_distance_1D(temp(:,1)) >= min_interval/(radarParameter.wavelength/2) ...
-            && min_distance_1D(temp(:,2)) >= min_interval/(radarParameter.wavelength/2))
+    if(min_distance_1D(temp(:,1)) >= min_interval_cal ...
+       && min_distance_1D(temp(:,2)) >= min_interval_cal)
         X(:,:,i) = temp;
         i = i + 1;
     end
@@ -40,7 +43,7 @@ sigma = Lmax^2 / (N_Tx+N_Rx-1)^2;
 u = 0.5;
 
 % iteration bumbers
-T = 200;
+T = 150;
 
 % track maximum fitness for every iteration
 maxf = Inf;
@@ -67,10 +70,10 @@ for t = 1 : T
        % children value changed by variance
        Y = child + sqrt([[0,0];sigma_new]) .* [[0,0];randn(N_Tx+N_Rx-1, 2)];
        % gaurentee the largest position of antannas are smaller than L
-       if max(Y(:)) <= Lmax && min(Y(:)) >= 0 && ...
-           min_distance_1D(Y(:,1)) >= min_interval/(radarParameter.wavelength/2) && ...
-           min_distance_1D(Y(:,2)) >= min_interval/(radarParameter.wavelength/2)% 后面加天线距离的约束
-
+       if(max(Y(:)) <= Lmax && min(Y(:)) >= 0 && ...
+           min_distance_1D(Y(:,1)) >= min_interval_cal && ...
+           min_distance_1D(Y(:,2)) >= min_interval_cal)
+       
            % if meet the condition, save child value and go to next child
            offspring(:,:,num_children) = Y;
            num_children = num_children + 1;
@@ -95,8 +98,8 @@ for t = 1 : T
    % 比较最大适应度与maxf记录值，更新maxf,同时记录x1,x2值
    if m_eval(1) < maxf
        maxf = m_eval(1);
-       opt_P_unit = U(:,:,I(1));
-       opt_P = to_virture_arrays(opt_P_unit(1:N_Tx, :), opt_P_unit(N_Tx+1:end, :), radarParameter);
+       opt_Tx_Rx = U(:,:,I(1));
+       opt_P = to_virture_arrays(opt_Tx_Rx(1:N_Tx, :), opt_Tx_Rx(N_Tx+1:end, :), radarParameter);
    end
    
    max_f(t) = trace(CRB_func_2D(opt_P, radarParameter, objectParameter));
@@ -109,10 +112,14 @@ for t = 1 : T
 %    end
 end
 
-% save("ES_results_20x4_SNR-5.mat")
+opt_Tx = opt_Tx_Rx(1:N_Tx, :);
+opt_Rx = opt_Tx_Rx(N_Tx+1:end, :);
+
+save("../ES_results/ES_results_20x4_SNR-5.mat");
+
 %%
 figure(1);
-plot(1:T, max_f, 'b')
+plot(1:T, [max_f], 'b')
 
 figure(2);
 plot_ambi_func_2D(opt_P, radarParameter);

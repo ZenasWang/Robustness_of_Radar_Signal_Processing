@@ -7,8 +7,8 @@ Tx(1,:) = [0, 0];
 Rx = Lmax * rand(N_Rx, 2);
 Y = [Tx;Rx];
 
-while(min_distance_1D(Y(:,1)) <= min_interval/(radarParameter.wavelength/2) || ...
-      min_distance_1D(Y(:,2)) <= min_interval/(radarParameter.wavelength/2))
+while(min_distance_1D(Y(:,1)) < min_interval/(radarParameter.wavelength/2) || ...
+      min_distance_1D(Y(:,2)) < min_interval/(radarParameter.wavelength/2))
     Tx = Lmax * rand(N_Tx, 2);
     Tx(1,:) = [0, 0];
     Rx = Lmax * rand(N_Rx, 2);

@@ -108,65 +108,70 @@ end
 % 画range uy时，保证vr和uy不同，若相同则把目标去除
 %%
 list = [actIndexList, targetList];
-list = sortrows(list, 2);
-if any(list)
-    vel = list(1, 2);
+% list has 6 column: [range_index, vr_index, range, vr, ux, uy];
+
+% delete same vr and uy
+list_range_ux = delete_same(list, 2 ,6);
+% delete same vr and ux
+list_range_uy = delete_same(list, 2, 5);
+
+range_ux = [];
+range_uy = [];
+% plot range ux
+for i = 1 : size(list_range_ux, 1)
+arrayResponse_2D = squeeze(arrayResponse_3D(:, list_range_ux(i, 2), :));
+norm_cost_func_ux = range_ux_figure(arrayResponse_2D,...
+                    list_range_ux(i, 4), list_range_ux(i, 6), radarParameter);
+if(~any(range_ux))
+    range_ux = norm_cost_func_ux;
+else
+    range_ux = range_ux + norm_cost_func_ux;
 end
-delList = [];
-if(size(list, 1) >= 2)
-for i = 2 : size(list, 1)
-    if vel == list(i, 2)
-        delList = [i, delList];
-    else
-       vel = list(i, 2);
-    end
 end
 
+% plot range uy
+for i = 1 : size(list_range_uy, 1)
+arrayResponse_2D = squeeze(arrayResponse_3D(:, list_range_uy(i, 2), :));
+norm_cost_func_uy = range_uy_figure(arrayResponse_2D, ...
+                    list_range_uy(i, 4), list_range_uy(i, 5), radarParameter);           
+if(~any(range_uy))
+    range_uy = norm_cost_func_uy;
+else
+    range_uy = range_uy + norm_cost_func_uy;
+end
+end
+
+%%
+subplot(2, 4, [1,2,5,6]);
+plot_range_DOA(range_ux, "ux");
+
+subplot(2, 4, [3,4,7,8]);
+plot_range_DOA(range_uy, "uy");
+
+
+function [list] = delete_same(list, d1, d2)
+% delete the target that has same value in d dimension
+
+list = sortrows(list, d1);
+if any(list)
+    temp1 = list(1, d1);
+    temp2 = list(1, d2);
+end
+
+delList = [];  % pick same volocity
+if(size(list, 1) >= 2)
+    for i = 2 : size(list, 1)
+        if (abs(temp1 - list(i, d1)) <= 1e-4 && abs(temp2 - list(i, d2)) <= 1e-4)
+            delList = [i, delList];
+        else
+           temp1 = list(i, d1);
+           temp2 = list(i, d2);
+        end
+    end
+end
+% delete the same value
 for i = 1 : numel(delList)
     list(i, :) = [];
 end
-% delList = [];
-% 
-% if(size(list, 1) >= 2)
-% list = sortrows(list, 6);
-% uy = list(1, 6);
-% for i = 2 : size(list, 1)
-%     if abs(uy - list(i, 6)) <= 1e-4
-%         delList = [i, delList];
-%     else
-%        uy = list(i, 6);
-%     end
-% end
-% for i = 1 : numel(delList)
-%     list(i, :) = [];
-% end
-% end
-end   
-%%
-list
-range_ux = [];
-range_uy = [];
 
-for i = 1 : size(list, 1)
-arrayResponse_2D = squeeze(arrayResponse_3D(:, list(i, 2), :));
-norm_cost_func_ux = range_ux_figure(arrayResponse_2D, list(i, 3)...
-    , list(i, 4), list(i, 6), radarParameter);
-norm_cost_func_uy = range_uy_figure(arrayResponse_2D, list(i, 3)...
-    , list(i, 4), list(i, 5), radarParameter);
-
-if(~any(range_ux))
-            range_ux = norm_cost_func_ux;
-            range_uy = norm_cost_func_uy;
-        else
-            range_ux = range_ux + norm_cost_func_ux;
-            range_uy = range_uy + norm_cost_func_uy;
 end
-end
-
-subplot(1, 2, 1);
-plot_range_DOA(range_ux, "ux");
-
-subplot(1, 2, 2);
-plot_range_DOA(range_uy, "uy");
-
-% end

@@ -16,27 +16,29 @@ N_pn = radarParameter.N_pn;   % number of all virtual antenna
 Lmax = floor(0.1/(radarParameter.wavelength/2));
 % unit 1/2 wavelength
 
-% X initialized by random choise one in N antennas in 0-L
-N = 1000;
+% % X initialized by random choise one in N antennas in 0-L
+% N = 1000;
+% 
+% % N = floor(100*N_pn*2/L);
+% Xs = zeros(N_pn, 2, N);
+% % generate N initialized antenna
+% 
+% parfor i = 1: N
+%     Xs(:,:,i) = random_genrate_arrays(Lmax, N_Tx, N_Rx, min_interval, radarParameter);
+% end
 
-% N = floor(100*N_pn*2/L);
-Xs = zeros(N_pn, 2, N);
-% generate N initialized antenna
+% X0_ind = randi(N);
+% X = Xs(:, :, X0_ind);
 
-parfor i = 1: N
-    Xs(:,:,i) = random_genrate_arrays(Lmax, N_Tx, N_Rx, min_interval, radarParameter);
-end
+X = random_genrate_arrays(Lmax, N_Tx, N_Rx, min_interval, radarParameter);
+% % one way to initialize temperature
+% E = zeros(1, N);
+% parfor i = 1: N
+%     E(i) = fitness_func_2D(Xs(:,:,i), radarParameter, objectParameter);
+% end
 
-X0_ind = randi(N);
-X = Xs(:, :, X0_ind);
-
-% one way to initialize temperature
-E = zeros(1, N);
-parfor i = 1: N
-    E(i) = fitness_func_2D(Xs(:,:,i), radarParameter, objectParameter);
-end
-
-T0 = 0.5 * (mean(E(E < 0.5)) - 1.5 * std(E(E < 0.5), 1));
+% T0 = 0.3 * (mean(E(E < 0.5)) - 1.5 * std(E(E < 0.5), 1));
+T0 = 5e-12;
 % T0 = 0.002;
 %%
 % another to initialize temperature
@@ -49,9 +51,9 @@ count = 1;
 
 % initializa parameters
 temperature = T0 * exp(-0.07 * count);% initial tempotature
-iter = 3;             % iteration
+iter = 5000;             % iteration
 % iter = floor(100*N_pn*2/L) = 630;
-full_iter = 50;
+full_iter = 35;
 
 % initialized fitness function
 enegy(count) = fitness_func_2D(X, radarParameter, objectParameter);  
@@ -73,8 +75,8 @@ for count = 2 : full_iter
         if delta_e < 0
             X = new_X;
         else
-            % 没变小则有一定概率进行更换
-            if rand() < exp(-delta_e/temperature)  
+            % 没变小则有一定概率进行更换,差值越小更换的几率越大
+            if rand() < exp(-delta_e/temperature)
 %                     fprintf("dE = %.2e, probability of change: %.2f \n", delta_e, exp(-delta_e/temperature))
 %                     fprintf("changed")
                 X = new_X;

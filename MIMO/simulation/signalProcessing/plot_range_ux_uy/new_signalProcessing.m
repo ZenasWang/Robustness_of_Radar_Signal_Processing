@@ -1,4 +1,4 @@
-% function [targetList, range_ux, range_uy] = new_signalProcessing( rawData, radarParameter )
+function [targetList, range_doppler, range_ux, range_uy] = new_signalProcessing( rawData, radarParameter )
 % signal Processing of the Radar Signal to get the
 % output as a dected target list with estimated range, velocity and DOA
 
@@ -7,8 +7,6 @@
 % - targetList      := estimated tagets information [range, speed, ux, uy]
 % - range_ux        := matix of range_ux_figure
 % - range_uy        := matix of range_uy_figure
-
-rawData = rawData4;
 
 % define cfar parameters
 numTrainingCells = 40;
@@ -26,6 +24,7 @@ radarData = rawData;
 arrayResponse_3D = fft2(radarData, zeroPadingFactor * size(radarData, 1), ...
                         zeroPadingFactor * size(radarData, 2));
 arrayResponse_3D = fftshift(arrayResponse_3D, 2);
+range_doppler = squeeze(sum(abs(arrayResponse_3D).^2, 3));
 
 % detect targets in range direction
 rangeSpec = sum(abs(arrayResponse_3D).^2, 2);
@@ -111,12 +110,13 @@ list = [actIndexList, targetList];
 % list has 6 column: [range_index, vr_index, range, vr, ux, uy];
 
 % delete same vr and uy
-list_range_ux = delete_same(list, 2 ,6);
+list_range_ux = delete_same(list, 2, 6);
 % delete same vr and ux
 list_range_uy = delete_same(list, 2, 5);
 
 range_ux = [];
 range_uy = [];
+
 % plot range ux
 for i = 1 : size(list_range_ux, 1)
 arrayResponse_2D = squeeze(arrayResponse_3D(:, list_range_ux(i, 2), :));
@@ -141,18 +141,11 @@ else
 end
 end
 
-%%
-subplot(2, 4, [1,2,5,6]);
-plot_range_DOA(range_ux, "ux");
-
-subplot(2, 4, [3,4,7,8]);
-plot_range_DOA(range_uy, "uy");
-
-
 function [list] = delete_same(list, d1, d2)
-% delete the target that has same value in d dimension
+% delete the target that has same value in d1 and d2 dimension
 
 list = sortrows(list, d1);
+list = sortrows(list, d2);
 if any(list)
     temp1 = list(1, d1);
     temp2 = list(1, d2);
@@ -160,18 +153,18 @@ end
 
 delList = [];  % pick same volocity
 if(size(list, 1) >= 2)
-    for i = 2 : size(list, 1)
-        if (abs(temp1 - list(i, d1)) <= 1e-4 && abs(temp2 - list(i, d2)) <= 1e-4)
-            delList = [i, delList];
+    for n = 2 : size(list, 1)
+        if (abs(temp1 - list(n, d1)) <= 1e-4 && abs(temp2 - list(n, d2)) <= 1e-4)
+            delList = [n, delList];
         else
-           temp1 = list(i, d1);
-           temp2 = list(i, d2);
+           temp1 = list(n, d1);
+           temp2 = list(n, d2);
         end
     end
 end
+
 % delete the same value
-for i = 1 : numel(delList)
-    list(i, :) = [];
+list(delList, :) = [];
 end
 
 end

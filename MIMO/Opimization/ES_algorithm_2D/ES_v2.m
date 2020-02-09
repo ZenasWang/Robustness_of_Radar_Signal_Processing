@@ -7,7 +7,7 @@ N_Rx = 4;
 SNR = -5;
 min_interval = 0.1e-3;  % unit:m
 
-[Tx, Rx] = random_arrays_2D(31, N_Tx, N_Rx, false);
+[Tx, Rx] = random_arrays_2D(51, N_Tx, N_Rx, false);
 
 radarParameter = defineRadar(77e9, 224e6, 20.36e6, 256, 238, Tx, Rx);
 objectParameter = defineObject(15, 2, [0, 0], 1, SNR);
@@ -27,7 +27,7 @@ X = zeros(N_Tx + N_Rx, 2, N);
 i = 1;
 
 while i <= N
-    [Tx, Rx] = random_arrays_2D(Lmax, N_Tx, N_Rx, false);
+    [Tx, Rx] = random_arrays_with_max(Lmax, N_Tx, N_Rx, false);
     temp = [Tx; Rx];
     if(min_distance_1D(temp(:,1)) >= min_interval_cal ...
        && min_distance_1D(temp(:,2)) >= min_interval_cal)
@@ -37,7 +37,7 @@ while i <= N
 end
 
 % initialize variance strength
-sigma = Lmax^2 / (N_Tx+N_Rx-1)^2;
+sigma = Lmax^2 / (N_Tx+N_Rx-2)^2;
 
 % cross ratio
 u = 0.5;
@@ -47,10 +47,14 @@ T = 150;
 
 % track maximum fitness for every iteration
 maxf = Inf;
+[Tx, Rx] = uniform_arrays_2D(5, N_Tx, N_Rx, 1);
+% radarParameter.P = to_virture_arrays(X(1:N_Tx, :, 1), X(N_Tx+1:end, :, 1), radarParameter);
+radarParameter.P = to_virture_arrays(Tx, Rx, radarParameter);
+
 CRB0 = trace(CRB_func_2D(radarParameter.P, radarParameter, objectParameter));
 sll0 = get_SLL_2D_use_image(radarParameter.P, radarParameter);
 fprintf("iteration: 0, CRB: %.5e, sll:%.2f \n", CRB0, sll0);
-
+%%
 max_f = zeros(1, T);
 sll = zeros(1, T);
 mean_f = zeros(1, T);
@@ -66,9 +70,9 @@ for t = 1 : T
        % generate child
        child = u * pa1 + (1-u) * pa2;
        % variance will be change with the increase of iteration
-       new_sigma = sigma .* exp(2 * (2 * (N_Tx+N_Rx-1))^(-1/2) * randn(N_Tx+N_Rx-1, 2));
+       new_sigma = sigma .* exp(2 * (2 * (N_Tx+N_Rx-2))^(-1/2) * randn(N_Tx+N_Rx-2, 2));
        % children value changed by variance
-       Y = child + sqrt([[0,0];new_sigma]) .* [[0,0];randn(N_Tx+N_Rx-1, 2)];
+       Y = child + sqrt([[0,0];new_sigma;[0, 0]]) .* [[0,0];randn(N_Tx+N_Rx-2, 2);[0,0]];
        % gaurentee the largest position of antannas are smaller than L
        if(max(Y(:)) <= Lmax && min(Y(:)) >= 0 && ...
            min_distance_1D(Y(:,1)) >= min_interval_cal && ...
@@ -88,7 +92,8 @@ for t = 1 : T
    parfor i = 1: size(U,3)
        temp = U(:, :, i);   % N_pn x 3
        temp_P = to_virture_arrays(temp(1:N_Tx, :), temp(N_Tx+1:end, :), radarParameter);
-       eva(i) = fitness_func_2D(temp_P, radarParameter, objectParameter);   %把子代的70个个体适应度方程写出来
+       eva(i) = fitness_func_2D(temp_P, radarParameter, objectParameter);   
+       %把子代的70个个体适应度方程写出来
    end
 %    fprintf("successfully evoluted\n")
    % m_eval是排序的适应度值，从小到大，I是对应的适应值原来的下标
@@ -114,12 +119,12 @@ end
 
 opt_Tx = opt_Tx_Rx(1:N_Tx, :);
 opt_Rx = opt_Tx_Rx(N_Tx+1:end, :);
-
-% save("../ES_results/ES_results_20x4_SNR-5.mat");
+%%
+% save("../ES_results/ES_results_20x4_SNR-5_with_fixed_Lmax.mat");
 
 %%
 figure(1);
-plot(1:T, [max_f], 'b')
+plot(0:T, [CRB_0, max_f], 'b')
 
 figure(2);
 plot_ambi_func_2D(opt_P, radarParameter);

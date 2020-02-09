@@ -30,7 +30,7 @@ Lmax = floor(0.1/(radarParameter.wavelength/2));
 % X0_ind = randi(N);
 % X = Xs(:, :, X0_ind);
 
-X = random_genrate_arrays(Lmax, N_Tx, N_Rx, min_interval, radarParameter);
+[X, Tx, Rx] = random_genrate_arrays(Lmax, N_Tx, N_Rx, min_interval, radarParameter);
 % % one way to initialize temperature
 % E = zeros(1, N);
 % parfor i = 1: N
@@ -38,7 +38,7 @@ X = random_genrate_arrays(Lmax, N_Tx, N_Rx, min_interval, radarParameter);
 % end
 
 % T0 = 0.3 * (mean(E(E < 0.5)) - 1.5 * std(E(E < 0.5), 1));
-T0 = 5e-12;
+T0 = 1e-12;
 % T0 = 0.002;
 %%
 % another to initialize temperature
@@ -50,10 +50,10 @@ T0 = 5e-12;
 count = 1;
 
 % initializa parameters
-temperature = T0 * exp(-0.07 * count);% initial tempotature
-iter = 5000;             % iteration
+temperature = T0 * exp(-0.07 * count); % initial tempotature
+iter = 10000;             % iteration
 % iter = floor(100*N_pn*2/L) = 630;
-full_iter = 35;
+full_iter = 30;
 
 % initialized fitness function
 enegy(count) = fitness_func_2D(X, radarParameter, objectParameter);  
@@ -65,7 +65,7 @@ fprintf("iteration: 1, CRB: %.5e, sll:%.2f \n", CRB(1), sll(1));
 for count = 2 : full_iter
     for n  = 1 : iter
         % generate new antenna
-        new_X = random_genrate_arrays(Lmax, N_Tx, N_Rx, min_interval, radarParameter);
+        [new_X, new_Tx, new_Rx] = random_genrate_arrays(Lmax, N_Tx, N_Rx, min_interval, radarParameter);
         
 %             fprintf("selected \n");
         enegy1 = fitness_func_2D(X, radarParameter, objectParameter);
@@ -74,16 +74,20 @@ for count = 2 : full_iter
         % 变异后优化方程值变小了
         if delta_e < 0
             X = new_X;
+            Tx = new_Tx;
+            Rx = new_Rx;
         else
             % 没变小则有一定概率进行更换,差值越小更换的几率越大
             if rand() < exp(-delta_e/temperature)
 %                     fprintf("dE = %.2e, probability of change: %.2f \n", delta_e, exp(-delta_e/temperature))
 %                     fprintf("changed")
                 X = new_X;
+                Tx = new_Tx;
+                Rx = new_Rx;                
+                
             end
         end
-%         end
-    end  
+    end
 %     count = count + 1;
     enegy(count) = fitness_func_2D(X, radarParameter, objectParameter);
     CRB(count) = trace(CRB_func_2D(X, radarParameter, objectParameter));
@@ -93,6 +97,8 @@ for count = 2 : full_iter
     fprintf("iteration: %d, CRB: %.5e, sll:%.2f \n", count, CRB(count), sll(count));
 end
 opt_P = X;
+opt_Tx = Tx;
+opt_Rx = Rx;
 %%
 figure;
 subplot(4,1,1)
@@ -105,6 +111,7 @@ for x = 1 : length(ux)%(az)
     Ambi_mat(x,y) = ambiguity_func(ux(x), uy(y), opt_P, radarParameter);
   end
 end
+
 Ambi_mat = Ambi_mat / max(Ambi_mat(:));
 subplot(4, 1, 2:4);
 surf(ux,uy, Ambi_mat);

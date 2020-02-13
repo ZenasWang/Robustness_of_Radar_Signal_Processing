@@ -13,8 +13,7 @@ end
 % get local max of ambiguity function
 peaks = imregionalmax(Ambi);
 peaksIdx_struct = regionprops(peaks,'PixelIdxList');
-% figure
-% imagesc(peaks); % view max. peaks
+
 peaksIdx = cell2mat(struct2cell(peaksIdx_struct));
 Ambi_peaks = Ambi(peaksIdx);
 sorted_Ambi_peak = sort(Ambi_peaks);

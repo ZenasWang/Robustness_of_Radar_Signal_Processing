@@ -7,37 +7,37 @@ N_Rx = 4;
 SNR = -5;
 min_interval = 0.1e-3;  % unit:m
 
-[Tx, Rx] = random_arrays_2D(51, N_Tx, N_Rx, false);
+[Tx, Rx] = random_arrays_2D(51, N_Tx, N_Rx);
 
 radarParameter = defineRadar(77e9, 224e6, 20.36e6, 256, 238, Tx, Rx);
 objectParameter = defineObject(15, 2, [0, 0], 1, SNR);
 
 % lagest distance between antennas, 10 cm, unit 1/2 wavelength
-Lmax = floor(0.1/(radarParameter.wavelength/2));
+Lmax_unit = floor(0.1/(radarParameter.wavelength/2));
 
-% relative min interval
-min_interval_cal = min_interval/(radarParameter.wavelength/2);
+% relative min interval, unit 1/2 wavelength
+min_interval_unit = min_interval/(radarParameter.wavelength/2);
 
 % first population number
-N = 1000;
+N = 1;
 
 % X 为 N_pn x 2 x N
 % if initialized by random choise in 0-L
 X = zeros(N_Tx + N_Rx, 2, N);
-i = 1;
 
+i = 1;
 while i <= N
-    [Tx, Rx] = random_arrays_with_max(Lmax, N_Tx, N_Rx, false);
+    [Tx, Rx] = random_arrays_with_max(Lmax_unit, N_Tx, N_Rx);
     temp = [Tx; Rx];
-    if(min_distance_1D(temp(:,1)) >= min_interval_cal ...
-       && min_distance_1D(temp(:,2)) >= min_interval_cal)
+    if(min_distance_1D(temp(:,1)) >= min_interval_unit ...
+       && min_distance_1D(temp(:,2)) >= min_interval_unit)
         X(:,:,i) = temp;
         i = i + 1;
     end
 end
 
 % initialize variance strength
-sigma = Lmax^2 / (N_Tx+N_Rx-2)^2;
+sigma = Lmax_unit^2 / (N_Tx+N_Rx-2)^2;
 
 % cross ratio
 u = 0.5;
@@ -47,13 +47,14 @@ T = 150;
 
 % track maximum fitness for every iteration
 maxf = Inf;
-[Tx, Rx] = uniform_arrays_2D(5, N_Tx, N_Rx, 1);
-% radarParameter.P = to_virture_arrays(X(1:N_Tx, :, 1), X(N_Tx+1:end, :, 1), radarParameter);
+[Tx, Rx] = rand_array_with_min_interval(Lmax_unit, N_Tx, N_Rx, min_interval_unit, radarParameter);
+
 radarParameter.P = to_virture_arrays(Tx, Rx, radarParameter);
 
-CRB0 = trace(CRB_func_2D(radarParameter.P, radarParameter, objectParameter));
-sll0 = get_SLL_2D_use_image(radarParameter.P, radarParameter);
-fprintf("iteration: 0, CRB: %.5e, sll:%.2f \n", CRB0, sll0);
+CRB_0 = trace(CRB_func_2D(radarParameter.P, radarParameter, objectParameter));
+sll_0 = get_SLL_2D_use_image(radarParameter.P, radarParameter);
+fprintf("iteration: 0, CRB: %.5e, sll:%.2f \n", CRB_0, sll_0);
+
 %%
 max_f = zeros(1, T);
 sll = zeros(1, T);
@@ -74,9 +75,9 @@ for t = 1 : T
        % children value changed by variance
        Y = child + sqrt([[0,0];new_sigma;[0, 0]]) .* [[0,0];randn(N_Tx+N_Rx-2, 2);[0,0]];
        % gaurentee the largest position of antannas are smaller than L
-       if(max(Y(:)) <= Lmax && min(Y(:)) >= 0 && ...
-           min_distance_1D(Y(:,1)) >= min_interval_cal && ...
-           min_distance_1D(Y(:,2)) >= min_interval_cal)
+       if(max(Y(:)) <= Lmax_unit && min(Y(:)) >= 0 && ...
+           min_distance_1D(Y(:,1)) >= min_interval_unit && ...
+           min_distance_1D(Y(:,2)) >= min_interval_unit)
        
            % if meet the condition, save child value and go to next child
            offspring(:,:,num_children) = Y;
@@ -85,11 +86,11 @@ for t = 1 : T
    end
    U = offspring; % a matrix of 7N child antenna
    % 这里是(µ,λ)策略
-   % u,λ选择策略: 从新生成的λ个体中选择 ,建议λ/μ = 7
+   % u,λ选择策略: 从新生成的λ个体中选择 ,建议 λ/μ = 7
    % μ/λ是压力比，其越大选择压力越大。
    % u + λ策略改为 U = [offspring, X]
    eva = zeros(1, size(U,3));
-   parfor i = 1: size(U,3)
+   for i = 1: size(U,3)
        temp = U(:, :, i);   % N_pn x 3
        temp_P = to_virture_arrays(temp(1:N_Tx, :), temp(N_Tx+1:end, :), radarParameter);
        eva(i) = fitness_func_2D(temp_P, radarParameter, objectParameter);   
@@ -101,6 +102,7 @@ for t = 1 : T
    I1 = I(1: N); % 从7*N子代中选出最小的N个的适应度下标行向量
    X = U(:,:,I1); % 把取出来的最小的下标代入，得到7*N中最好的N个个体
    % 比较最大适应度与maxf记录值，更新maxf,同时记录x1,x2值
+   
    if m_eval(1) < maxf
        maxf = m_eval(1);
        opt_Tx_Rx = U(:,:,I(1));
@@ -120,7 +122,7 @@ end
 opt_Tx = opt_Tx_Rx(1:N_Tx, :);
 opt_Rx = opt_Tx_Rx(N_Tx+1:end, :);
 %%
-% save("../ES_results/ES_results_20x4_SNR-5_with_fixed_Lmax.mat");
+% save("./ES_results/ES_results_20x4_SNR-5_with_fixed_Lmax.mat");
 
 %%
 figure(1);

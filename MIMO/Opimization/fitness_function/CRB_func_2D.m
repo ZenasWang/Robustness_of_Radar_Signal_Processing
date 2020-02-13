@@ -14,8 +14,8 @@ N_pn = radarParameter.N_pn;
 noise_power = signal_power / SNR_linear;
 
 % calculate CRB
-Var = cov(P, 1); % .* kron(f0, ones([radarParameter.N_Rx, 3]))
+Var = cov(P, 1);
 CRB_2D = noise_power * c^2 ./(f0^2 * 8 * pi^2 * N_pn * signal_power .* Var);
 % CRB_2D = trace(CRB);
-% CRB_2D = [1,1,1] * diagCRB;
+% CRB_2D = [1,1] * diagCRB;
 end

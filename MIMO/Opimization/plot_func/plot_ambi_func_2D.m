@@ -1,14 +1,15 @@
-function [] = plot_ambi_func_2D(opt_P, radarParameter)
+function [] = plot_ambi_func_2D(opm_P, radarParameter)
 
-ux = -1 : 0.01 : 1;
-uy = -1 : 0.01 : 1;
+ux = -1 : 0.001 : 1;
+uy = -1 : 0.001 : 1;
 Ambi = zeros(numel(ux), numel(uy));
 for i = 1 : size(ux,2)
     for j = 1 : size(uy,2)
-        Ambi(i,j) = ambiguity_func(ux(i), uy(j), opt_P, radarParameter);
+        Ambi(j,i) = ambiguity_func(ux(i), uy(j), opm_P, radarParameter);
     end
 end
 Ambi = Ambi/ max(Ambi(:));
+
 % imagesc(Ambi)
 % colormap("jet")
 

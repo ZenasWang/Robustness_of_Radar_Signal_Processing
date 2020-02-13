@@ -3,6 +3,6 @@ function [value] = fitness_func_wrapper(x, radarParameter, objectParameter)
 
 [Tx, Rx] = disassembleX(x, radarParameter);
 P = to_virture_arrays(Tx, Rx, radarParameter);
-value = fitness_func_2D(P, radarParameter, objectParameter);
+value = fitness_func_2D_GA(P, radarParameter, objectParameter);
 
 end

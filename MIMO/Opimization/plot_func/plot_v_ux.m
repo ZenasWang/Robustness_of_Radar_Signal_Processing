@@ -1,12 +1,12 @@
-function [] = plot_v_ux(opm_P, radarParameter, objectParameter)
+function [] = plot_v_ux(opt_P, radarParameter, objectParameter)
 
 ux = -1 : 0.01 : 1;
-v = -10 : 0.1 : 10;
+v = -400/3.6 : 0.65 : 200/3.6;
 
 Ambi = zeros(numel(v), numel(ux));
 for i = 1 : numel(ux)
     for k = 1 : numel(v)
-        Ambi(k,i) = ambiguity_func(ux(i), 0, v(k), opm_P, radarParameter, objectParameter);
+        Ambi(k,i) = ambiguity_func(ux(i), 0, v(k), opt_P, radarParameter, objectParameter);
     end
 end
 Ambi = Ambi/ max(Ambi(:));

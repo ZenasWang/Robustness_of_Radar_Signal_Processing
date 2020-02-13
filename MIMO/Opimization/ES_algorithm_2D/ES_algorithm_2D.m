@@ -7,16 +7,16 @@ N_Rx = 4;
 SNR = -5;
 min_interval = 0.1e-3;  % unit:m
 
-[Tx, Rx] = random_arrays_2D(31, N_Tx, N_Rx, false);
+[Tx, Rx] = random_arrays_2D(51, N_Tx, N_Rx);
 
 radarParameter = defineRadar(77e9, 224e6, 20.36e6, 256, 238, Tx, Rx);
 objectParameter = defineObject(15, 2, [0, 0], 1, SNR);
 
 % lagest distance between antennas, 10 cm, unit 1/2 wavelength
-Lmax = floor(0.1/(radarParameter.wavelength/2));
+Lmax_unit = 0.1/(radarParameter.wavelength/2);
 
 % relative min interval
-min_interval_cal = min_interval/(radarParameter.wavelength/2);
+min_interval_unit = min_interval/(radarParameter.wavelength/2);
 
 % first population number
 N = 1000;
@@ -27,17 +27,17 @@ X = zeros(N_Tx + N_Rx, 2, N);
 i = 1;
 
 while i <= N
-    [Tx, Rx] = random_arrays_2D(Lmax, N_Tx, N_Rx, false);
+    [Tx, Rx] = random_arrays_2D(Lmax_unit, N_Tx, N_Rx, false);
     temp = [Tx; Rx];
-    if(min_distance_1D(temp(:,1)) >= min_interval_cal ...
-       && min_distance_1D(temp(:,2)) >= min_interval_cal)
+    if(min_distance_1D(temp(:,1)) >= min_interval_unit ...
+       && min_distance_1D(temp(:,2)) >= min_interval_unit)
         X(:,:,i) = temp;
         i = i + 1;
     end
 end
 
 % initialize variance strength
-sigma = Lmax^2 / (N_Tx+N_Rx-1)^2;
+sigma = Lmax_unit^2 / (N_Tx+N_Rx-1)^2;
 
 % cross ratio
 u = 0.5;
@@ -70,9 +70,9 @@ for t = 1 : T
        % children value changed by variance
        Y = child + sqrt([[0,0];new_sigma]) .* [[0,0];randn(N_Tx+N_Rx-1, 2)];
        % gaurentee the largest position of antannas are smaller than L
-       if(max(Y(:)) <= Lmax && min(Y(:)) >= 0 && ...
-           min_distance_1D(Y(:,1)) >= min_interval_cal && ...
-           min_distance_1D(Y(:,2)) >= min_interval_cal)
+       if(max(Y(:)) <= Lmax_unit && min(Y(:)) >= 0 && ...
+           min_distance_1D(Y(:,1)) >= min_interval_unit && ...
+           min_distance_1D(Y(:,2)) >= min_interval_unit)
        
            % if meet the condition, save child value and go to next child
            offspring(:,:,num_children) = Y;

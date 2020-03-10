@@ -1,15 +1,17 @@
 clc;
 clear;
+close all;
 
-objectParameter1 = defineObject(70, 10, [0.4, 0.4], 1, 8);
-objectParameter2 = defineObject(120, 10, [0.4,0.1], 1, 8);
-objectParameter3 = defineObject(1, 10, [0.4,0.1], 1, 8);
-objectParameter4 = defineObject(150, 13, [-0.2,0.2], 1, 8);
+objectParameter1 = defineObject(70, 10, [0.4, 0.44124], 1, -4);
+objectParameter2 = defineObject(120,-10, [0.3,0.12332], 1, -4);
+objectParameter3 = defineObject(30, -5, [-0.3,0.3321], 1, -4);
+objectParameter4 = defineObject(150, 5, [-0.2,0.22134], 1, -5);
 
-[Tx, Rx] = random_arrays_2D(30, 20, 4, false); % without wavelength
+[Tx, Rx] = uniform_arrays_2D(4, 4); % without wavelength
 
 % Tx = opt_Tx;
 % Rx = opt_Rx;
+
 radarParameter = defineRadar(77e9, 224e6, 20.36e6, 256, 238, Tx, Rx);
 % radarParameter.P = opm_P;
 
@@ -27,14 +29,13 @@ rawData4 = signalGenerator_SO(radarParameter, objectParameter1) ...
          + signalGenerator_SO(radarParameter, objectParameter2) ...
          + signalGenerator_SO(radarParameter, objectParameter3) ...
          + signalGenerator_SO(radarParameter, objectParameter4);
-     
-%%     
-[targetList, range_doppler_fig, range_ux_fig, range_uy_fig] = new_signalProcessing(rawData4, radarParameter);
+
+[targetList, range_doppler_fig, range_ux_fig, range_uy_fig] = signalProcessing(rawData4, radarParameter);
 toc
 
 fprintf("range\t\tvelocity\tux\t\tuy\n");
 for i = 1 : size(targetList, 1)
-    fprintf("%.2f\t\t%.2f\t\t%.4f\t\t%.4f\n", targetList(i,:));
+    fprintf("%.5f\t\t%.5f\t\t%.10f\t\t%.10f\n", targetList(i,:));
 end
 
 %%

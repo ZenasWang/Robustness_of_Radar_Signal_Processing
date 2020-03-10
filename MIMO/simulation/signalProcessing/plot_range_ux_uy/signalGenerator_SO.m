@@ -41,6 +41,9 @@ X = objectParameter.A...
       * radarParameter.P * objectParameter.u'), 1, 1, radarParameter.N_pn);
 
 % add white gaussian noise
-signal = awgn(X, objectParameter.SNR, 'measured');   
-
+% signal = awgn(X, objectParameter.SNR);
+SNR_linear = 10^(objectParameter.SNR/10);
+npower = objectParameter.A/SNR_linear;
+noise = sqrt(npower/2) * (randn(radarParameter.N_sample, radarParameter.N_chirp, radarParameter.N_pn)+1i*randn(radarParameter.N_sample, radarParameter.N_chirp, radarParameter.N_pn));   
+signal = X + noise;
 end

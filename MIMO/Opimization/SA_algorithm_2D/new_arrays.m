@@ -3,14 +3,12 @@ function [P, Tx, Rx] = new_arrays(Tx, Rx, Lmax, min_interval, radarParameter, si
 Y = [Tx;Rx];
 new_Y = Y + sqrt(sigma) .* randn(size(Y));
 new_Y(1,:) = Tx(1, :);
-new_Y(end,:) = Rx(end, :);
 
 while(max(new_Y(:)) > Lmax || min(new_Y(:)) < 0 ||...
       min_distance_1D(new_Y(:,1)) < min_interval || ...
       min_distance_1D(new_Y(:,2)) < min_interval) 
     new_Y = Y + sqrt(sigma) .* randn(size(Y));
     new_Y(1,:) = Tx(1, :);
-    new_Y(end,:) = Rx(end, :);
 end
 
 Tx = new_Y(1:size(Tx, 1), :);

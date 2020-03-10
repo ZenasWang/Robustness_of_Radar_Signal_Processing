@@ -1,7 +1,7 @@
 function [SLL] = get_SLL_2D_use_image(P, radarParameter)
 
 ux = -1 : 0.01 : 1;
-uy = -1 : 0.01 : 1;
+uy = -0.5 : 0.01 : 0.5;
 
 Ambi = zeros(length(ux), length(uy));
 for x = 1 : length(ux)%(az)

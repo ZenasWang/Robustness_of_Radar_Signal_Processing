@@ -11,33 +11,35 @@ function [targetList, range_doppler, range_ux, range_uy] = signalProcessing( raw
 % define cfar parameters
 numTrainingCells = 40;
 numGuardCells = 4;
+
 probabilityFalseAlarm = 1e-5;
 zeroPadingFactor = 3;
+rank = 30;
 
 % Window
-% windowData = repmat(chebwin(size(rawData, 1), 30) * chebwin(size(rawData, 2), 30)' , 1, 1, size(rawData, 3));
-% windowData = repmat(chebwin(size(rawData,1)),1, size(rawData,2),size(rawData,3));
-% radarData = rawData.* windowData;
-radarData = rawData;
+% windowData = repmat(chebwin(size(rawData, 1), 10) * chebwin(size(rawData, 2), 10)' , 1, 1, size(rawData, 3));
+windowData = repmat(chebwin(size(rawData,1)), 1, size(rawData,2), size(rawData,3));
+radarData = rawData.* windowData;
+% radarData = rawData;
 
 % 2D FFT
 arrayResponse_3D = fft2(radarData, zeroPadingFactor * size(radarData, 1), ...
                         zeroPadingFactor * size(radarData, 2));
 arrayResponse_3D = fftshift(arrayResponse_3D, 2);
-range_doppler = squeeze(sum(abs(arrayResponse_3D).^2, 3));
 
-% detect targets in range direction
-rangeSpec = sum(abs(arrayResponse_3D).^2, 2);
+% 1D-fft range to detect targets in range direction
+fft_range = fft(radarData, zeroPadingFactor * size(radarData, 1), 1); % * sqrt(size(radarData, 1)) 
+rangeSpec = sum(abs(fft_range), 2);
 
 % sum of all range spectra of the antennas
-rangeSpec_sum = sum(rangeSpec, 3); % N_sample x 1
-
+rangeSpec_sum = sum(rangeSpec, 3).^2; % N_sample x 1
+range_doppler = squeeze(sum(abs(arrayResponse_3D), 3));
 % detect targets range
 
 % set the detector parameter, os-cfar detector
 range_detector = phased.CFARDetector('Method', 'OS', 'NumTrainingCells', numTrainingCells,...
     'NumGuardCells', numGuardCells, 'ProbabilityFalseAlarm', probabilityFalseAlarm, ...
-      'Rank', 15);
+      'Rank', rank);
 
 % get the binary Mask after cfar
 CFAR_binaryMask = range_detector(rangeSpec_sum, 1:numel(rangeSpec_sum));
@@ -47,7 +49,6 @@ rangeSpecMaxPos = clusterCFARMask(rangeSpec_sum, CFAR_binaryMask);
 
 % peak detection and interpolation to got the real maxIndes
 peakPos = peakInterp(rangeSpecMaxPos, rangeSpec_sum);
-
 % map to real ranges
 rangeDetections = (zeroPadingFactor * radarParameter.N_sample - peakPos + 1)/zeroPadingFactor ...
         * radarParameter.c0/(2*radarParameter.B);  % convert to metric units
@@ -59,16 +60,15 @@ range_uy = [];
 % loop to calculate the velocity
 for actRangeTarg = 1 : numel(rangeSpecMaxPos)
     actRangeBin = rangeSpecMaxPos(actRangeTarg);
-    
     % sum every layer after fft
-    actVelSpec = arrayResponse_3D(actRangeBin,:,:);
-    actVelSpecSum = sum(abs(actVelSpec).^2, 3);
-    actVelSpecSum = actVelSpecSum.';
+    actVelSpec = fftshift(fft(fft_range(actRangeBin,:,:), zeroPadingFactor * size(radarData, 2),2),2); % sqrt(size(radarData, 2))
+    actVelSpecSum = (sum(abs(actVelSpec), 3).^2)';
+
     % define velocity cfar detector 
     vel_detector = phased.CFARDetector('Method', 'OS', 'NumTrainingCells', numTrainingCells,...
     'NumGuardCells', numGuardCells, 'ProbabilityFalseAlarm', probabilityFalseAlarm, ...
       'Rank', 15);    % return a row;   
-  
+    
     % got the binary Mask after cfar
     CFAR_binaryMask = vel_detector(actVelSpecSum, 1: numel(actVelSpecSum));
     
@@ -92,6 +92,7 @@ for actRangeTarg = 1 : numel(rangeSpecMaxPos)
         arrayResponse = squeeze(actVelSpec(:, actVelBin, :));
         angle(actVelTarg, :) = DOAEstimator_2D(arrayResponse, ...
         rangeDetections(actRangeTarg), velDetections(actVelTarg), radarParameter);
+        
         arrayResponse_2D = squeeze(arrayResponse_3D(:, actVelBin, :));
         norm_cost_func_ux = range_ux_figure(arrayResponse_2D...
             , velDetections(actVelTarg), angle(actVelTarg, 2), radarParameter);

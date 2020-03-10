@@ -17,7 +17,7 @@ d = L_max / (radarParameter.N_pn - 1);
 % half width of the main lobe
 u_3db = 0.891 * lamda/2/(radarParameter.N_pn)/d;
 ux = -1 : 0.01 : 1;
-uy = -1 : 0.01 : 1;
+uy = 0 : 0.01 : 1;
 
 % [UY, UX] = meshgrid(ux, uy);
 % tic

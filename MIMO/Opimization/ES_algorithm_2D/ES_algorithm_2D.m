@@ -2,18 +2,18 @@ clear;
 clc;
 close all;
 
-N_Tx = 20;
+N_Tx = 4;
 N_Rx = 4;
 SNR = -5;
 min_interval = 0.1e-3;  % unit:m
 
-[Tx, Rx] = random_arrays_2D(51, N_Tx, N_Rx);
+[Tx, Rx] = rectangular_arrays_2D(N_Tx, N_Rx);
 
 radarParameter = defineRadar(77e9, 224e6, 20.36e6, 256, 238, Tx, Rx);
 objectParameter = defineObject(15, 2, [0, 0], 1, SNR);
 
 % lagest distance between antennas, 10 cm, unit 1/2 wavelength
-Lmax_unit = 0.1/(radarParameter.wavelength/2);
+Lmax_unit = 0.02/(radarParameter.wavelength/2);
 
 % relative min interval
 min_interval_unit = min_interval/(radarParameter.wavelength/2);
@@ -27,7 +27,7 @@ X = zeros(N_Tx + N_Rx, 2, N);
 i = 1;
 
 while i <= N
-    [Tx, Rx] = random_arrays_2D(Lmax_unit, N_Tx, N_Rx, false);
+    [Tx, Rx] = random_arrays_2D(Lmax_unit, N_Tx, N_Rx);
     temp = [Tx; Rx];
     if(min_distance_1D(temp(:,1)) >= min_interval_unit ...
        && min_distance_1D(temp(:,2)) >= min_interval_unit)
@@ -115,11 +115,11 @@ end
 opt_Tx = opt_Tx_Rx(1:N_Tx, :);
 opt_Rx = opt_Tx_Rx(N_Tx+1:end, :);
 
-% save("../ES_results/ES_results_20x4_SNR-5.mat");
+save("./ES_results/ES_results_4x4_SNR-5.mat");
 
 %%
 figure(1);
 plot(1:T, [max_f], 'b')
 
 figure(2);
-plot_ambi_func_2D(opt_P, radarParameter);
+plot_ambi_func_2D(Tx, Rx, radarParameter);

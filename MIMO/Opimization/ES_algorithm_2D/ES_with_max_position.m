@@ -2,12 +2,12 @@ clear;
 clc;
 close all;
 
-N_Tx = 20;
+N_Tx = 10;
 N_Rx = 4;
 SNR = -5;
 min_interval = 0.1e-3;  % unit:m
 
-[Tx, Rx] = random_arrays_2D(51, N_Tx, N_Rx);
+[Tx, Rx] = rectangular_arrays_2D(N_Tx, N_Rx);
 
 radarParameter = defineRadar(77e9, 224e6, 20.36e6, 256, 238, Tx, Rx);
 objectParameter = defineObject(15, 2, [0, 0], 1, SNR);
@@ -19,7 +19,7 @@ Lmax_unit = floor(0.1/(radarParameter.wavelength/2));
 min_interval_unit = min_interval/(radarParameter.wavelength/2);
 
 % first population number
-N = 1;
+N = 1000;
 
 % X 为 N_pn x 2 x N
 % if initialized by random choise in 0-L
@@ -47,7 +47,7 @@ T = 150;
 
 % track maximum fitness for every iteration
 maxf = Inf;
-[Tx, Rx] = rand_array_with_min_interval(Lmax_unit, N_Tx, N_Rx, min_interval_unit, radarParameter);
+[Tx, Rx] = rand_array_with_min_interval(Lmax_unit, N_Tx, N_Rx, min_interval_unit);
 
 radarParameter.P = to_virture_arrays(Tx, Rx, radarParameter);
 
@@ -90,7 +90,7 @@ for t = 1 : T
    % μ/λ是压力比，其越大选择压力越大。
    % u + λ策略改为 U = [offspring, X]
    eva = zeros(1, size(U,3));
-   for i = 1: size(U,3)
+   parfor i = 1: size(U,3)
        temp = U(:, :, i);   % N_pn x 3
        temp_P = to_virture_arrays(temp(1:N_Tx, :), temp(N_Tx+1:end, :), radarParameter);
        eva(i) = fitness_func_2D(temp_P, radarParameter, objectParameter);   
@@ -113,20 +113,16 @@ for t = 1 : T
    sll(t) = get_SLL_2D_use_image(opt_P, radarParameter);
       fprintf("iteration: %d, CRB: %.5e, sll:%.2f \n", t, max_f(t), sll(t));
    mean_f(t) = mean(eva(I1)); % 计算每代平均适应度
-%    if t >= 10 && mean(abs([max_f(t) - max_f(t-1), max_f(t-1) - max_f(t-2),...
-%                     max_f(t-2) - max_f(t-3),  max_f(t-3) - max_f(t-4)])) <= 1e-6
-%        break
-%    end
 end
 
 opt_Tx = opt_Tx_Rx(1:N_Tx, :);
 opt_Rx = opt_Tx_Rx(N_Tx+1:end, :);
 %%
-% save("./ES_results/ES_results_20x4_SNR-5_with_fixed_Lmax.mat");
+save("./ES_results/ES_results_10x4_SNR-5_with_fixed_Lmax.mat");
 
 %%
 figure(1);
-plot(0:T, [CRB_0, max_f], 'b')
+plot(1:T, [max_f], 'b')
 
 figure(2);
-plot_ambi_func_2D(opt_P, radarParameter);
+plot_ambi_func_2D(opt_Tx, opt_Rx, radarParameter);

@@ -9,22 +9,23 @@ function [targetList, range_doppler, range_ux, range_uy] = new_signalProcessing(
 % - range_uy        := matix of range_uy_figure
 
 % define cfar parameters
-numTrainingCells = 40;
-numGuardCells = 4;
+numTrainingCells = 20;
+numGuardCells = 2;
 probabilityFalseAlarm = 1e-5;
 zeroPadingFactor = 3;
 
 % Window
-% windowData = repmat(chebwin(size(rawData, 1), 30) * chebwin(size(rawData, 2), 30)' , 1, 1, size(rawData, 3));
+windowData = repmat(chebwin(size(rawData, 1), 30) * chebwin(size(rawData, 2), 30)' , 1, 1, size(rawData, 3));
 % windowData = repmat(chebwin(size(rawData,1)),1, size(rawData,2),size(rawData,3));
-% radarData = rawData.* windowData;
-radarData = rawData;
+radarData = rawData.* windowData;
+% radarData = rawData;
 
 % 2D FFT
 arrayResponse_3D = fft2(radarData, zeroPadingFactor * size(radarData, 1), ...
                         zeroPadingFactor * size(radarData, 2));
 arrayResponse_3D = fftshift(arrayResponse_3D, 2);
-range_doppler = squeeze(sum(abs(arrayResponse_3D).^2, 3));
+% range_doppler = squeeze(sum(abs(arrayResponse_3D).^2, 3));
+range_doppler = squeeze(sum(abs(fftshift(fft2(radarData), 2)).^2, 3));
 
 % detect targets in range direction
 rangeSpec = sum(abs(arrayResponse_3D).^2, 2);
@@ -91,7 +92,7 @@ for actRangeTarg = 1 : numel(rangeSpecMaxPos)
 
         angle = DOAEstimator_2D(arrayResponse, ...
         rangeDetections(actRangeTarg), velDetections(actVelTarg), radarParameter);
-    
+        
         %create a target information
         actIndex = [rangeSpecMaxPos(actRangeTarg), velSpecMaxPos(actVelTarg)];
         actTargets = [rangeDetections(actRangeTarg), velDetections(actVelTarg), angle];

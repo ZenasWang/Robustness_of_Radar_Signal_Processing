@@ -13,7 +13,7 @@ function [targetList] = signalProcessing( rawData, radarParameter )
 
 % define cfar parameters
 numTrainingCells = 20;
-numGuardCells = 2;
+numGuardCells = 4;
 probabilityFalseAlarm = 1e-5;
 
 % Window
@@ -27,19 +27,30 @@ fft_range = fft(radarData, size(radarData, 1), 1); % * sqrt(size(radarData, 1))
 rangeSpec = sum(abs(fft_range), 2);
 % sum of all range spectra of the antennas
 rangeSpec_sum = sum(rangeSpec, 3); % N_sample x 1
-% plot(rangeSpec_sum)
-% ax = axes;
-% plot(abs(fft_range(:,1,1)))
+plot(rangeSpec_sum);
+ax = axes;
+stem(abs(fft_range(:,1,1)))
 % ax.YGrid = 'on';
 % ax.YScale = 'log';
 
 % detect targets range
+
 % set the detector parameter, os-cfar detector
 range_detector = phased.CFARDetector('Method', 'OS', 'NumTrainingCells', numTrainingCells,...
     'NumGuardCells', numGuardCells, 'ProbabilityFalseAlarm', probabilityFalseAlarm, ...
-      'Rank', 15);  % return a row;
-% got the binary Mask after cfar
-CFAR_binaryMask = range_detector(rangeSpec_sum, 1:numel(rangeSpec_sum));
+      'Rank', 15, 'ThresholdOutputPort', true);  % return a row;
+
+% gtt the binary Mask after cfar
+[CFAR_binaryMask, th] = range_detector(abs(fft_range(:,1,1)), 1:numel(rangeSpec_sum));
+plot(abs(fft_range(:,1,1)));
+hold on;
+plot(th);
+
+
+
+
+
+
 % cluster to find the different target
 [rangeSpecMaxPos] = clusterCFARMask(rangeSpec_sum, CFAR_binaryMask');
 % peak detection and interpolation to got the real maxIndes

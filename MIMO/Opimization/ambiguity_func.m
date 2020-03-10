@@ -17,7 +17,7 @@ function [ambi_func] = ambiguity_func(ux, uy, P, radarParameter)
 %                              ux;uy;sqrt(1 - ux^2 + uy ^2)]))).^2;
 
 % because we decoupled the velocity
-E = -2*pi /radarParameter.c0 * radarParameter.f0 * P;           
+E = -2*pi /radarParameter.c0 * radarParameter.f0 * P;
 ambi_func = abs((exp(1j*(E * [0;0])))'...
               * exp(1j*(E * [ux;uy]))).^2;
 end

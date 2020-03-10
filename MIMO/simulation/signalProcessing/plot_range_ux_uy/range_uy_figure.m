@@ -6,7 +6,7 @@ E = -2*pi /radarParameter.c0 * [2 * radarParameter.f0 * ones(radarParameter.N_pn
                                 2 * radarParameter.f0 * kron(tpn', ones([radarParameter.N_Rx,1])),...
                                 radarParameter.f0 * radarParameter.P];
 
-uy = -1 : 0.0028 : 1;
+uy = 0 : 0.0007 : 0.5;
             
 cost_func = zeros(size(arrayResponse_2D, 1), numel(uy));
     
